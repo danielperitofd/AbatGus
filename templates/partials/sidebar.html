@@ -1,0 +1,35 @@
+<aside class="sidebar-shell">
+  <div class="brand-block">
+    <div class="brand-logo">
+      <i class="bi bi-building-gear"></i>
+    </div>
+    <div>
+      <div class="brand-title">AbatGus</div>
+      <div class="brand-subtitle">Gestao operacional do abatedouro</div>
+    </div>
+  </div>
+
+  <div class="nav-group-title">Principal</div>
+  <a class="side-link" href="{% url 'core:dashboard' %}"><i class="bi bi-grid"></i> Dashboard</a>
+  <a class="side-link" href="{% url 'operations:income-list' %}"><i class="bi bi-cash-coin"></i> Fontes de renda</a>
+  <a class="side-link" href="{% url 'operations:meat-list' %}"><i class="bi bi-box-seam"></i> Carnes</a>
+  <a class="side-link" href="{% url 'operations:residue-list' %}"><i class="bi bi-recycle"></i> Residuos</a>
+  <a class="side-link" href="{% url 'operations:indemnity-list' %}"><i class="bi bi-exclamation-octagon"></i> Indenizacoes</a>
+  <a class="side-link" href="{% url 'reports:hub' %}"><i class="bi bi-bar-chart"></i> Relatorios</a>
+
+  <div class="nav-group-title">Cadastros</div>
+  <a class="side-link" href="{% url 'operations:income-item-list' %}"><i class="bi bi-tags"></i> Itens de renda</a>
+  <a class="side-link" href="{% url 'operations:meat-category-list' %}"><i class="bi bi-grid-3x3-gap"></i> Categorias de carnes</a>
+  <a class="side-link" href="{% url 'operations:residue-category-list' %}"><i class="bi bi-diagram-2"></i> Categorias de residuos</a>
+
+  {% if can_see_settings %}
+    <div class="nav-group-title">Configuracoes</div>
+    <a class="side-link" href="{% url 'accounts:list' %}"><i class="bi bi-people"></i> Usuarios</a>
+    <a class="side-link" href="{% url 'access:overview' %}"><i class="bi bi-sliders"></i> Acessos</a>
+  {% endif %}
+
+  {% if can_see_admin_tools %}
+    <div class="nav-group-title">Admin Tools</div>
+    <a class="side-link" href="{% url 'organizations:list' %}"><i class="bi bi-diagram-3"></i> Organizacoes</a>
+  {% endif %}
+</aside>

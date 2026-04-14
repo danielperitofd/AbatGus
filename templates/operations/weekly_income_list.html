@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Fontes de renda | AbatGus{% endblock %}
+{% block content %}
+<section class="content-card">
+  <div class="section-heading">
+    <div><h2>{{ title }}</h2><p>{{ description }}</p></div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url import_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-upload me-2"></i>Importar Excel</a>
+      <a href="{% url export_excel_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-file-earmark-excel me-2"></i>Excel</a>
+      <a href="{% url export_pdf_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-printer me-2"></i>PDF</a>
+      <a href="{% url create_url_name %}" class="btn btn-primary rounded-4"><i class="bi bi-plus-circle me-2"></i>Novo lançamento</a>
+    </div>
+  </div>
+  <div class="status-grid mb-4">
+    <div class="status-card success"><span>Verde</span><strong>{{ status_summary.success }}</strong></div>
+    <div class="status-card warning"><span>Amarelo</span><strong>{{ status_summary.warning }}</strong></div>
+    <div class="status-card danger"><span>Vermelho</span><strong>{{ status_summary.danger }}</strong></div>
+  </div>
+  <form method="get" class="filter-panel mb-4">
+    <div class="row g-3">
+      <div class="col-md-3"><label class="form-label">Buscar item</label><input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="Ex.: boi"></div>
+      <div class="col-md-2"><label class="form-label">Ano</label><input type="number" name="year" value="{{ filters.year }}" class="form-control" placeholder="2026"></div>
+      <div class="col-md-2"><label class="form-label">Mês</label><input type="number" name="month" value="{{ filters.month }}" class="form-control" placeholder="3"></div>
+      <div class="col-md-2"><label class="form-label">Semana</label><input type="number" name="week" value="{{ filters.week }}" class="form-control" placeholder="1"></div>
+      <div class="col-md-2"><label class="form-label">Status</label><select name="status" class="form-select"><option value="">Todos</option><option value="success" {% if filters.status == 'success' %}selected{% endif %}>Verde</option><option value="warning" {% if filters.status == 'warning' %}selected{% endif %}>Amarelo</option><option value="danger" {% if filters.status == 'danger' %}selected{% endif %}>Vermelho</option></select></div>
+      <div class="col-md-1 d-flex align-items-end"><button class="btn btn-outline-secondary rounded-4 w-100">OK</button></div>
+    </div>
+  </form>
+  <div class="table-responsive">
+    <table class="table abat-table">
+      <thead><tr><th>Item</th><th>Período</th><th>Quantidade</th><th>Preço</th><th>Total</th><th>Semáforo</th><th></th></tr></thead>
+      <tbody>
+        {% for item in entries %}
+          <tr>
+            <td>{{ item.item.name }}</td>
+            <td>{{ item.reference_month }}/{{ item.reference_year }} · S{{ item.week_number }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>R$ {{ item.unit_price }}</td>
+            <td>R$ {{ item.calculated_total }}</td>
+            <td><span class="status-pill {{ item.semaphore.color }}">{{ item.semaphore.label }}</span></td>
+            <td class="text-end">
+              <div class="d-inline-flex gap-2">
+                <a href="{% url 'operations:income-detail' item.pk %}" class="btn btn-sm btn-outline-secondary rounded-4" title="Visualizar"><i class="bi bi-eye"></i></a>
+                <a href="{% url 'operations:income-update' item.pk %}" class="btn btn-sm btn-outline-secondary rounded-4" title="Editar"><i class="bi bi-pencil"></i></a>
+                <a href="{% url 'operations:income-delete' item.pk %}" class="btn btn-sm btn-outline-danger rounded-4" title="Excluir"><i class="bi bi-x-lg"></i></a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7">Nenhum lançamento encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

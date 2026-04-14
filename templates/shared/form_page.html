@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} | AbatGus{% endblock %}
+{% block content %}
+<section class="content-card">
+  <div class="section-heading">
+    <div>
+      <h2>{{ page_title }}</h2>
+      <p>{{ page_description }}</p>
+    </div>
+  </div>
+  <form method="post" enctype="multipart/form-data" class="row g-3">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="col-md-6">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>{% endif %}
+      </div>
+    {% endfor %}
+    <div class="col-12 d-flex gap-2 justify-content-end">
+      <a href="javascript:history.back()" class="btn btn-outline-secondary rounded-4 px-4">Cancelar</a>
+      <button class="btn btn-primary rounded-4 px-4" type="submit">Salvar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const formatBrazilianDecimal = (value) => {
+    const numericValue = Number(String(value).replace(",", "."));
+    if (Number.isNaN(numericValue)) return value;
+    const formatted = numericValue.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    return `R$ ${formatted}`;
+  };
+
+  document.querySelectorAll("select[data-autofill-target]").forEach((select) => {
+    const target = document.getElementById(select.dataset.autofillTarget);
+    if (!target) return;
+
+    const applyDefaultPrice = () => {
+      const selectedOption = select.options[select.selectedIndex];
+      if (!selectedOption) return;
+      const defaultPrice = selectedOption.dataset.defaultPrice;
+      if (!defaultPrice) return;
+      if (!target.value || target.dataset.autofilled === "true") {
+        target.value = formatBrazilianDecimal(defaultPrice);
+        target.dataset.autofilled = "true";
+      }
+    };
+
+    select.addEventListener("change", applyDefaultPrice);
+    target.addEventListener("input", () => {
+      target.dataset.autofilled = "false";
+    });
+    applyDefaultPrice();
+  });
+
+  document.querySelectorAll("[data-select-on-focus='true']").forEach((field) => {
+    field.addEventListener("focus", () => {
+      field.select();
+    });
+  });
+</script>
+{% endblock %}

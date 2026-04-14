@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | AbatGus{% endblock %}
+{% block content %}
+<section class="hero-card">
+  <div class="section-heading">
+    <div>
+      <h2>Visao geral da operacao</h2>
+      <p>Painel gerencial com leitura rapida de producao, metas, doacoes e ocorrencias.</p>
+    </div>
+    <span class="pill-soft"><i class="bi bi-activity"></i> Semaforo operacional ativo</span>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">Fontes de renda</div><div class="metric-value">{{ income_total }}</div><div class="metric-foot">Soma das quantidades lancadas</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">Peso de carnes</div><div class="metric-value">{{ meat_total }}</div><div class="metric-foot">Kg totais controlados</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">Doacoes</div><div class="metric-value">{{ donation_total }}</div><div class="metric-foot">Kg destinados a doacao</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">Indenizacoes</div><div class="metric-value">R$ {{ indemnity_total }}</div><div class="metric-foot">Saidas registradas</div></div></div>
+  </div>
+</section>
+
+<div class="row g-3">
+  <div class="col-xl-8">
+    <section class="content-card">
+      <div class="section-heading">
+        <div><h2>Receita por competencia</h2><p>Evolucao mensal estimada das fontes de renda.</p></div>
+      </div>
+      <canvas id="incomeChart" height="120"></canvas>
+    </section>
+  </div>
+  <div class="col-xl-4">
+    <section class="content-card">
+      <div class="section-heading">
+        <div><h2>Semaforo consolidado</h2><p>Resumo geral das areas acompanhadas.</p></div>
+      </div>
+      <canvas id="semaphoreChart" height="220"></canvas>
+    </section>
+  </div>
+  <div class="col-xl-6">
+    <section class="content-card">
+      <div class="section-heading">
+        <div><h2>Receita por categoria de carne</h2><p>Distribuicao do faturamento por categoria.</p></div>
+      </div>
+      <canvas id="meatChart" height="180"></canvas>
+    </section>
+  </div>
+  <div class="col-xl-6">
+    <section class="info-card">
+      <div class="section-heading">
+        <div><h2>Semaforo operacional</h2><p>Leitura rapida das areas que pedem atencao.</p></div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6"><div class="metric-card"><div class="metric-label">Fontes de renda</div><div class="metric-foot">{{ income_summary.success }} verdes, {{ income_summary.warning }} amarelos, {{ income_summary.danger }} vermelhos.</div></div></div>
+        <div class="col-md-6"><div class="metric-card"><div class="metric-label">Carnes</div><div class="metric-foot">{{ meat_summary.success }} verdes, {{ meat_summary.warning }} amarelos, {{ meat_summary.danger }} vermelhos.</div></div></div>
+        <div class="col-md-6"><div class="metric-card"><div class="metric-label">Residuos</div><div class="metric-foot">{{ residue_summary.success }} verdes, {{ residue_summary.warning }} amarelos, {{ residue_summary.danger }} vermelhos.</div></div></div>
+        <div class="col-md-6"><div class="metric-card"><div class="metric-label">Indenizacoes</div><div class="metric-foot">{{ indemnity_summary.success }} verdes, {{ indemnity_summary.warning }} amarelos, {{ indemnity_summary.danger }} vermelhos.</div></div></div>
+      </div>
+    </section>
+  </div>
+  <div class="col-xl-6">
+    <section class="content-card">
+      <div class="section-heading">
+        <div><h2>Ultimas fontes de renda</h2><p>Entradas semanais por item.</p></div>
+      </div>
+      <div class="table-responsive">
+        <table class="table abat-table">
+          <thead><tr><th>Item</th><th>Periodo</th><th>Qtde</th><th>Preco</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for item in recent_incomes %}
+              <tr><td>{{ item.item.name }}</td><td>{{ item.reference_month }}/{{ item.reference_year }} · S{{ item.week_number }}</td><td>{{ item.quantity }}</td><td>R$ {{ item.unit_price }}</td><td><span class="status-pill {{ item.semaphore.color }}">{{ item.semaphore.label }}</span></td></tr>
+            {% empty %}
+              <tr><td colspan="5">Sem lancamentos ainda.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <div class="col-xl-6">
+    <section class="content-card">
+      <div class="section-heading">
+        <div><h2>Indenizacoes recentes</h2><p>Ocorrencias com impacto financeiro.</p></div>
+      </div>
+      <div class="table-responsive">
+        <table class="table abat-table">
+          <thead><tr><th>Produto</th><th>Data</th><th>Dono</th><th>Liquido</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for item in recent_indemnities %}
+              <tr><td>{{ item.product }}</td><td>{{ item.occurred_on|date:"d/m/Y" }}</td><td>{{ item.owner_name }}</td><td>R$ {{ item.net_amount }}</td><td><span class="status-pill {{ item.semaphore.color }}">{{ item.semaphore.label }}</span></td></tr>
+            {% empty %}
+              <tr><td colspan="5">Sem indenizacoes cadastradas.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+{{ income_chart|json_script:"income-chart-data" }}
+{{ meat_chart|json_script:"meat-chart-data" }}
+{{ semaphore_chart|json_script:"semaphore-chart-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const incomeChartData = JSON.parse(document.getElementById("income-chart-data").textContent);
+  const meatChartData = JSON.parse(document.getElementById("meat-chart-data").textContent);
+  const semaphoreChartData = JSON.parse(document.getElementById("semaphore-chart-data").textContent);
+
+  new Chart(document.getElementById("incomeChart"), {
+    type: "bar",
+    data: {
+      labels: incomeChartData.labels,
+      datasets: [{
+        label: "Receita estimada",
+        data: incomeChartData.values,
+        backgroundColor: "#8A2E1E",
+        borderRadius: 12
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+  });
+
+  new Chart(document.getElementById("meatChart"), {
+    type: "doughnut",
+    data: {
+      labels: meatChartData.labels,
+      datasets: [{
+        data: meatChartData.values,
+        backgroundColor: ["#8A2E1E", "#E3B04B", "#314E52", "#7C8C3B", "#C96A4A", "#11212D"]
+      }]
+    },
+    options: { responsive: true }
+  });
+
+  new Chart(document.getElementById("semaphoreChart"), {
+    type: "pie",
+    data: {
+      labels: semaphoreChartData.labels,
+      datasets: [{
+        data: semaphoreChartData.values,
+        backgroundColor: ["#1B8A5A", "#E3B04B", "#C13C37"]
+      }]
+    },
+    options: { responsive: true }
+  });
+</script>
+{% endblock %}

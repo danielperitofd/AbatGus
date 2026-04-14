@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Entrar | AbatGus{% endblock %}
+{% block auth_content %}
+<section class="login-shell">
+  <div class="login-panel">
+    <div class="login-copy">
+      <span class="eyebrow">AbatGus SaaS</span>
+      <h1>Operação, rendimento e financeiro no mesmo painel.</h1>
+      <p>Entrada segura por organização, com módulos para fontes de renda, carnes, resíduos, indenizações e relatórios gerenciais.</p>
+    </div>
+    <div class="login-card">
+      <h2>Acessar sistema</h2>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>{% endif %}
+          </div>
+        {% endfor %}
+        <button class="btn btn-primary w-100 rounded-4 py-3">Entrar</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} | AbatGus{% endblock %}
+{% block content %}
+<section class="content-card">
+  <div class="section-heading">
+    <div><h2>{{ title }}</h2><p>{{ description }}</p></div>
+    <a href="{% url create_url_name %}" class="btn btn-primary rounded-4"><i class="bi bi-plus-circle me-2"></i>Novo cadastro</a>
+  </div>
+  <form method="get" class="filter-panel mb-4">
+    <div class="row g-3">
+      <div class="col-md-8">
+        <label class="form-label">Buscar</label>
+        <input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="Digite para buscar pelo nome">
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-outline-secondary rounded-4 w-100">Filtrar</button>
+      </div>
+    </div>
+  </form>
+  <div class="table-responsive">
+    <table class="table abat-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Configuração</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in entries %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td>
+              {% if item.default_price %}Preço base: R$ {{ item.default_price }} · {% endif %}
+              {% if item.price_per_kg %}Preço/kg: R$ {{ item.price_per_kg }} · {% endif %}
+              {% if item.target_amount %}Meta: {{ item.target_amount }} · {% endif %}
+              {% if item.unit %}{{ item.get_unit_display }}{% endif %}
+            </td>
+            <td>{% if item.is_active %}<span class="status-pill success">Ativo</span>{% else %}<span class="status-pill secondary">Inativo</span>{% endif %}</td>
+            <td class="text-end">
+              <div class="d-inline-flex gap-2">
+                <a href="{% url update_url_name item.pk %}" class="btn btn-sm btn-outline-secondary rounded-4"><i class="bi bi-pencil"></i></a>
+                <a href="{% url delete_url_name item.pk %}" class="btn btn-sm btn-outline-danger rounded-4"><i class="bi bi-x-lg"></i></a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4">Nenhum cadastro encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

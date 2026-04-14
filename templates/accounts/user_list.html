@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Usuários | AbatGus{% endblock %}
+{% block content %}
+<section class="content-card">
+  <div class="section-heading">
+    <div><h2>Usuários</h2><p>Controle gestores e auxiliares por organização.</p></div>
+    <a href="{% url 'accounts:create' %}" class="btn btn-primary rounded-4">Novo usuário</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table abat-table">
+      <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Organização</th><th></th></tr></thead>
+      <tbody>
+        {% for item in users %}
+          <tr>
+            <td>{{ item.display_name }}</td>
+            <td>{{ item.username }}</td>
+            <td>{{ item.get_role_display }}</td>
+            <td>{{ item.organization|default:"-" }}</td>
+            <td class="text-end"><a href="{% url 'accounts:update' item.pk %}" class="btn btn-sm btn-outline-secondary rounded-4"><i class="bi bi-pencil"></i></a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">Nenhum usuário cadastrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

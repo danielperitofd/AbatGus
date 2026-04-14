@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} | AbatGus{% endblock %}
+{% block content %}
+<section class="content-card">
+  <div class="section-heading">
+    <div>
+      <h2>{{ page_title }}</h2>
+      <p>{{ page_description }}</p>
+    </div>
+  </div>
+  <div class="info-strip mb-4">
+    <strong>Colunas esperadas:</strong> {{ sample_columns }}
+  </div>
+  <form method="post" enctype="multipart/form-data" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-8">
+      <label class="form-label">{{ form.file.label }}</label>
+      {{ form.file }}
+      {% if form.file.errors %}<div class="text-danger small mt-1">{{ form.file.errors|join:", " }}</div>{% endif %}
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+      <button class="btn btn-primary rounded-4 w-100" type="submit">
+        <i class="bi bi-upload me-2"></i>Importar planilha
+      </button>
+    </div>
+  </form>
+</section>
+{% endblock %}

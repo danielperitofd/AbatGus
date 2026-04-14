@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Acessos | AbatGus{% endblock %}
+{% block content %}
+<section class="content-card">
+  <div class="section-heading">
+    <div><h2>Gestão de acessos</h2><p>Estrutura inicial para permissões por módulo e hierarquia.</p></div>
+  </div>
+  <div class="row g-3">
+    {% for module in modules %}
+      <div class="col-md-6 col-xl-4">
+        <div class="metric-card">
+          <div class="metric-label">{{ module.parent.name|default:"Raiz" }}</div>
+          <div class="metric-value fs-5">{{ module.name }}</div>
+          <div class="metric-foot">{{ module.description|default:"Sem descrição." }}</div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12"><div class="metric-card">Os módulos base serão populados pela seed inicial.</div></div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

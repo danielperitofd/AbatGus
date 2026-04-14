@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Detalhes | AbatGus{% endblock %}
+{% block content %}
+<section class="content-card">
+  <div class="section-heading">
+    <div>
+      <h2>Detalhes do registro</h2>
+      <p>Visualização completa do lançamento operacional.</p>
+    </div>
+  </div>
+  <div class="row g-3">
+    {% for label, value in detail_fields %}
+      <div class="col-md-6 col-xl-4">
+        <div class="metric-card">
+          <div class="metric-label">{{ label|capfirst }}</div>
+          <div class="metric-foot">{{ value|default:"-" }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

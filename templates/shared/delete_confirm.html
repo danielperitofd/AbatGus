@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Excluir | AbatGus{% endblock %}
+{% block content %}
+<section class="content-card">
+  <div class="section-heading">
+    <div>
+      <h2>Confirmar exclusão</h2>
+      <p>Essa ação remove o registro de forma definitiva. Se houver dependências, o sistema vai impedir a exclusão.</p>
+    </div>
+  </div>
+  <div class="danger-box mb-4">
+    <strong>Confirma a exclusão deste registro?</strong>
+    <div class="small mt-2">Objeto: {{ object }}</div>
+  </div>
+  <form method="post" class="d-flex gap-2 justify-content-end">
+    {% csrf_token %}
+    <a href="javascript:history.back()" class="btn btn-outline-secondary rounded-4 px-4">Cancelar</a>
+    <button class="btn btn-danger rounded-4 px-4" type="submit">Excluir</button>
+  </form>
+</section>
+{% endblock %}
