@@ -1,73 +1,143 @@
 {% extends "base.html" %}
+{% load formatters i18n %}
 {% block title %}Dashboard | AbatGus{% endblock %}
 {% block content %}
 <section class="hero-card">
   <div class="section-heading">
     <div>
-      <h2>Visao geral da operacao</h2>
-      <p>Painel gerencial com leitura rapida de producao, metas, doacoes e ocorrencias.</p>
+      <h2>{% trans "Visao geral da operacao" %}</h2>
+      <p>{% trans "Painel gerencial com leitura rapida de producao, metas, doacoes e ocorrencias." %}</p>
     </div>
-    <span class="pill-soft"><i class="bi bi-activity"></i> Semaforo operacional ativo</span>
+    <span class="pill-soft"><i class="bi bi-activity"></i> {% trans "Semaforo operacional ativo" %}</span>
   </div>
   <div class="row g-3">
-    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">Fontes de renda</div><div class="metric-value">{{ income_total }}</div><div class="metric-foot">Soma das quantidades lancadas</div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">Peso de carnes</div><div class="metric-value">{{ meat_total }}</div><div class="metric-foot">Kg totais controlados</div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">Doacoes</div><div class="metric-value">{{ donation_total }}</div><div class="metric-foot">Kg destinados a doacao</div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">Indenizacoes</div><div class="metric-value">R$ {{ indemnity_total }}</div><div class="metric-foot">Saidas registradas</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">{% trans "Fontes de renda" %}</div><div class="metric-value">{{ income_total }}</div><div class="metric-foot">{% trans "Soma das quantidades lancadas" %}</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">{% trans "Peso de carnes" %}</div><div class="metric-value">{{ meat_total|kg }}</div><div class="metric-foot">{% trans "Kg totais controlados" %}</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">{% trans "Doacoes" %}</div><div class="metric-value">{{ donation_total|kg }}</div><div class="metric-foot">{% trans "Kg destinados a doacao" %}</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">{% trans "Indenizacoes" %}</div><div class="metric-value">{{ indemnity_total|brl }}</div><div class="metric-foot">{% trans "Saidas registradas" %}</div></div></div>
   </div>
 </section>
 
-<div class="row g-3">
-  <div class="col-xl-8">
-    <section class="content-card">
-      <div class="section-heading">
-        <div><h2>Receita por competencia</h2><p>Evolucao mensal estimada das fontes de renda.</p></div>
-      </div>
-      <canvas id="incomeChart" height="120"></canvas>
-    </section>
-  </div>
+<section class="filter-panel mb-4">
+  <form method="get" class="row g-3 align-items-end">
+    <div class="col-md-4 col-xl-3">
+      <label class="form-label">{% trans "Janela analitica" %}</label>
+      <select name="range" class="form-select">
+        {% for item in dashboard_ranges %}
+          <option value="{{ item.value }}" {% if selected_dashboard_range == item.value %}selected{% endif %}>{{ item.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 col-xl-2">
+      <button class="btn btn-outline-secondary rounded-4 w-100">{% trans "Aplicar" %}</button>
+    </div>
+  </form>
+</section>
+
+<div class="dashboard-analytics row g-3">
   <div class="col-xl-4">
-    <section class="content-card">
-      <div class="section-heading">
-        <div><h2>Semaforo consolidado</h2><p>Resumo geral das areas acompanhadas.</p></div>
+    <div class="row g-3">
+      <div class="col-12">
+        <section class="content-card chart-card">
+          <div class="section-heading">
+            <div><h2>{% trans "Receita por competencia" %}</h2><p>{% trans "Evolucao mensal estimada das fontes de renda." %}</p></div>
+          </div>
+          <div class="chart-canvas-wrap compact">
+            <canvas id="incomeChart" height="150"></canvas>
+          </div>
+          <div class="chart-legend-list mt-3">
+            {% for item in income_chart.items %}
+              <div class="chart-legend-row">
+                <span class="chart-dot" style="background: {{ item.color }}"></span>
+                <span class="chart-label">{{ item.label }}</span>
+                <strong class="chart-value">{{ item.value|brl }}</strong>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
       </div>
-      <canvas id="semaphoreChart" height="220"></canvas>
+      <div class="col-12">
+        <section class="content-card chart-card">
+          <div class="section-heading">
+            <div><h2>{% trans "Semaforo consolidado" %}</h2><p>{% trans "Resumo geral das areas acompanhadas." %}</p></div>
+          </div>
+          <div class="chart-canvas-wrap compact">
+            <canvas id="semaphoreChart" height="150"></canvas>
+          </div>
+          <div class="chart-legend-list mt-3">
+            {% for item in semaphore_chart.items %}
+              <div class="chart-legend-row">
+                <span class="chart-dot" style="background: {{ item.color }}"></span>
+                <span class="chart-label">{{ item.label }}</span>
+                <strong class="chart-value">{{ item.value }}</strong>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-xl-5">
+    <section class="content-card chart-card chart-card-featured">
+      <div class="section-heading">
+        <div><h2>{% trans "Receita por categoria de carne" %}</h2><p>{% trans "Distribuicao do faturamento por categoria." %}</p></div>
+      </div>
+      <div class="chart-canvas-wrap featured">
+        <canvas id="meatChart" height="220"></canvas>
+      </div>
+      <div class="chart-legend-list chart-legend-grid mt-3">
+        {% for item in meat_chart.items %}
+          <div class="chart-legend-row">
+            <span class="chart-dot" style="background: {{ item.color }}"></span>
+            <span class="chart-label">{{ item.label }}</span>
+            <strong class="chart-value">{{ item.value|brl }}</strong>
+          </div>
+        {% endfor %}
+      </div>
     </section>
   </div>
+
+  <div class="col-md-6 col-xl-3">
+    <section class="content-card chart-card">
+      <div class="section-heading">
+        <div><h2>{% trans "Semaforo operacional" %}</h2><p>{% trans "Leitura rapida por modulo." %}</p></div>
+      </div>
+      <div class="chart-legend-stack">
+        {% for panel in operational_panels %}
+          <div class="module-health-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <strong>{{ panel.label }}</strong>
+              <span class="status-pill secondary">{{ panel.total }}</span>
+            </div>
+            {% for item in panel.items %}
+              <div class="chart-legend-row">
+                <span class="chart-dot" style="background: {{ item.color }}"></span>
+                <span class="chart-label">{{ item.label }}</span>
+                <strong class="chart-value">{{ item.value }}</strong>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="row g-3">
   <div class="col-xl-6">
     <section class="content-card">
       <div class="section-heading">
-        <div><h2>Receita por categoria de carne</h2><p>Distribuicao do faturamento por categoria.</p></div>
-      </div>
-      <canvas id="meatChart" height="180"></canvas>
-    </section>
-  </div>
-  <div class="col-xl-6">
-    <section class="info-card">
-      <div class="section-heading">
-        <div><h2>Semaforo operacional</h2><p>Leitura rapida das areas que pedem atencao.</p></div>
-      </div>
-      <div class="row g-3">
-        <div class="col-md-6"><div class="metric-card"><div class="metric-label">Fontes de renda</div><div class="metric-foot">{{ income_summary.success }} verdes, {{ income_summary.warning }} amarelos, {{ income_summary.danger }} vermelhos.</div></div></div>
-        <div class="col-md-6"><div class="metric-card"><div class="metric-label">Carnes</div><div class="metric-foot">{{ meat_summary.success }} verdes, {{ meat_summary.warning }} amarelos, {{ meat_summary.danger }} vermelhos.</div></div></div>
-        <div class="col-md-6"><div class="metric-card"><div class="metric-label">Residuos</div><div class="metric-foot">{{ residue_summary.success }} verdes, {{ residue_summary.warning }} amarelos, {{ residue_summary.danger }} vermelhos.</div></div></div>
-        <div class="col-md-6"><div class="metric-card"><div class="metric-label">Indenizacoes</div><div class="metric-foot">{{ indemnity_summary.success }} verdes, {{ indemnity_summary.warning }} amarelos, {{ indemnity_summary.danger }} vermelhos.</div></div></div>
-      </div>
-    </section>
-  </div>
-  <div class="col-xl-6">
-    <section class="content-card">
-      <div class="section-heading">
-        <div><h2>Ultimas fontes de renda</h2><p>Entradas semanais por item.</p></div>
+        <div><h2>{% trans "Ultimas fontes de renda" %}</h2><p>{% trans "Entradas semanais por item." %}</p></div>
       </div>
       <div class="table-responsive">
         <table class="table abat-table">
-          <thead><tr><th>Item</th><th>Periodo</th><th>Qtde</th><th>Preco</th><th>Status</th></tr></thead>
+          <thead><tr><th>{% trans "Item" %}</th><th>{% trans "Periodo" %}</th><th>{% trans "Qtde" %}</th><th>{% trans "Preco" %}</th><th>{% trans "Status" %}</th></tr></thead>
           <tbody>
             {% for item in recent_incomes %}
-              <tr><td>{{ item.item.name }}</td><td>{{ item.reference_month }}/{{ item.reference_year }} · S{{ item.week_number }}</td><td>{{ item.quantity }}</td><td>R$ {{ item.unit_price }}</td><td><span class="status-pill {{ item.semaphore.color }}">{{ item.semaphore.label }}</span></td></tr>
+              <tr><td>{{ item.item.name }}</td><td>{{ item.reference_month|month_name }} · {{ item.reference_year }} · {{ item.week_number|week_name }}</td><td>{{ item.quantity }}</td><td>{{ item.unit_price|brl }}</td><td><span class="status-pill {{ item.semaphore.color }}">{{ item.semaphore.label }}</span></td></tr>
             {% empty %}
-              <tr><td colspan="5">Sem lancamentos ainda.</td></tr>
+              <tr><td colspan="5">{% trans "Sem lancamentos ainda." %}</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -77,16 +147,16 @@
   <div class="col-xl-6">
     <section class="content-card">
       <div class="section-heading">
-        <div><h2>Indenizacoes recentes</h2><p>Ocorrencias com impacto financeiro.</p></div>
+        <div><h2>{% trans "Indenizacoes recentes" %}</h2><p>{% trans "Ocorrencias com impacto financeiro." %}</p></div>
       </div>
       <div class="table-responsive">
         <table class="table abat-table">
-          <thead><tr><th>Produto</th><th>Data</th><th>Dono</th><th>Liquido</th><th>Status</th></tr></thead>
+          <thead><tr><th>{% trans "Produto" %}</th><th>{% trans "Data" %}</th><th>{% trans "Dono" %}</th><th>{% trans "Liquido" %}</th><th>{% trans "Status" %}</th></tr></thead>
           <tbody>
             {% for item in recent_indemnities %}
-              <tr><td>{{ item.product }}</td><td>{{ item.occurred_on|date:"d/m/Y" }}</td><td>{{ item.owner_name }}</td><td>R$ {{ item.net_amount }}</td><td><span class="status-pill {{ item.semaphore.color }}">{{ item.semaphore.label }}</span></td></tr>
+              <tr><td>{{ item.product }}</td><td>{{ item.occurred_on|date:"d/m/Y" }}</td><td>{{ item.owner_name }}</td><td>{{ item.net_amount|brl }}</td><td><span class="status-pill {{ item.semaphore.color }}">{{ item.semaphore.label }}</span></td></tr>
             {% empty %}
-              <tr><td colspan="5">Sem indenizacoes cadastradas.</td></tr>
+              <tr><td colspan="5">{% trans "Sem indenizacoes cadastradas." %}</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -107,41 +177,119 @@
   const semaphoreChartData = JSON.parse(document.getElementById("semaphore-chart-data").textContent);
 
   new Chart(document.getElementById("incomeChart"), {
-    type: "bar",
+    type: "line",
     data: {
       labels: incomeChartData.labels,
       datasets: [{
         label: "Receita estimada",
         data: incomeChartData.values,
-        backgroundColor: "#8A2E1E",
-        borderRadius: 12
+        borderColor: "#8A2E1E",
+        backgroundColor: "rgba(138, 46, 30, 0.14)",
+        fill: true,
+        tension: 0.35,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        pointBackgroundColor: "#8A2E1E",
+        pointBorderWidth: 0
       }]
     },
-    options: { responsive: true, plugins: { legend: { display: false } } }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: {
+            color: "#6b7280",
+            maxRotation: 0,
+            minRotation: 0
+          },
+          grid: { display: false }
+        },
+        y: {
+          ticks: {
+            color: "#6b7280",
+            callback: (value) => {
+              const amount = Number(value || 0);
+              return `R$ ${amount.toLocaleString("pt-BR")}`;
+            }
+          },
+          grid: { color: "rgba(107, 114, 128, 0.12)" }
+        }
+      }
+    }
   });
 
   new Chart(document.getElementById("meatChart"), {
-    type: "doughnut",
+    type: "bar",
     data: {
       labels: meatChartData.labels,
       datasets: [{
         data: meatChartData.values,
-        backgroundColor: ["#8A2E1E", "#E3B04B", "#314E52", "#7C8C3B", "#C96A4A", "#11212D"]
+        backgroundColor: meatChartData.colors,
+        borderWidth: 0,
+        borderRadius: 10,
+        maxBarThickness: 34
       }]
     },
-    options: { responsive: true }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: {
+            color: "#6b7280",
+            maxRotation: 0,
+            minRotation: 0
+          },
+          grid: { display: false }
+        },
+        y: {
+          ticks: {
+            color: "#6b7280",
+            callback: (value) => {
+              const amount = Number(value || 0);
+              return `R$ ${amount.toLocaleString("pt-BR")}`;
+            }
+          },
+          grid: { color: "rgba(107, 114, 128, 0.12)" }
+        }
+      }
+    }
   });
 
   new Chart(document.getElementById("semaphoreChart"), {
-    type: "pie",
+    type: "bar",
     data: {
       labels: semaphoreChartData.labels,
       datasets: [{
         data: semaphoreChartData.values,
-        backgroundColor: ["#1B8A5A", "#E3B04B", "#C13C37"]
+        backgroundColor: semaphoreChartData.colors,
+        borderWidth: 0,
+        borderRadius: 10,
+        maxBarThickness: 28
       }]
     },
-    options: { responsive: true }
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: {
+            color: "#6b7280",
+            stepSize: 5
+          },
+          grid: { color: "rgba(107, 114, 128, 0.12)" }
+        },
+        y: {
+          ticks: { color: "#6b7280" },
+          grid: { display: false }
+        }
+      }
+    }
   });
 </script>
 {% endblock %}

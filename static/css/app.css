@@ -139,6 +139,21 @@ body {
   margin: 0.3rem 0 0;
 }
 
+.abat-breadcrumb {
+  font-size: 0.82rem;
+}
+
+.abat-breadcrumb .breadcrumb-item,
+.abat-breadcrumb .breadcrumb-item a {
+  color: #6b7280;
+  text-decoration: none;
+}
+
+.abat-breadcrumb .breadcrumb-item.active {
+  color: var(--brand);
+  font-weight: 700;
+}
+
 .topbar-actions,
 .user-chip {
   gap: 0.85rem;
@@ -350,6 +365,125 @@ input[type="file"] {
   padding: 1rem;
 }
 
+.dashboard-analytics .content-card {
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+.chart-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-canvas-wrap {
+  position: relative;
+  min-height: 240px;
+}
+
+.chart-canvas-wrap.compact {
+  min-height: 170px;
+}
+
+.chart-canvas-wrap.featured {
+  min-height: 300px;
+}
+
+.chart-legend-list,
+.chart-legend-stack {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.chart-legend-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1rem;
+}
+
+.chart-legend-row {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.chart-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.chart-label {
+  color: var(--muted);
+  min-width: 0;
+}
+
+.chart-value {
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.module-health-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 0.85rem 0.95rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.chart-card-featured .section-heading {
+  margin-bottom: 0.6rem;
+}
+
+.dashboard-analytics {
+  margin-bottom: 1.2rem;
+}
+
+.toggle-field {
+  min-height: 48px;
+  border: 1px solid #d9cdbf;
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #fff;
+}
+
+.access-card {
+  height: 100%;
+  border: 1px solid #d9cdbf;
+  border-radius: 20px;
+  padding: 1.1rem;
+  background: #fff;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.access-card.enabled {
+  border-color: rgba(27, 138, 90, 0.35);
+  box-shadow: 0 12px 30px rgba(27, 138, 90, 0.08);
+}
+
+.access-card.disabled {
+  border-color: rgba(104, 112, 118, 0.25);
+  background: #fbfaf8;
+}
+
+.access-toggle {
+  align-self: center;
+}
+
+.form-switch .form-check-input {
+  width: 3rem;
+  height: 1.55rem;
+  cursor: pointer;
+}
+
 @media (max-width: 991.98px) {
   .login-panel {
     grid-template-columns: 1fr;
@@ -365,6 +499,18 @@ input[type="file"] {
   }
 
   .status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-canvas-wrap.compact {
+    min-height: 190px;
+  }
+
+  .chart-canvas-wrap.featured {
+    min-height: 230px;
+  }
+
+  .chart-legend-grid {
     grid-template-columns: 1fr;
   }
 }

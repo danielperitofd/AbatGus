@@ -1,11 +1,13 @@
+from datetime import date
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, View
 from collections import defaultdict
 
+from core.formatting import month_label
 from organizations.models import Organization
 from operations.models import (
     IndemnityRecord,
@@ -24,6 +26,14 @@ from operations.services import (
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "core/dashboard.html"
+    MEAT_COLORS = ["#8A2E1E", "#E3B04B", "#314E52", "#7C8C3B", "#C96A4A", "#11212D", "#D9863B"]
+    SEMAPHORE_COLORS = ["#1B8A5A", "#E3B04B", "#C13C37"]
+    RANGE_OPTIONS = {
+        "monthly": {"label": "Mensal", "months": 2},
+        "quarterly": {"label": "Trimestral", "months": 3},
+        "semiannual": {"label": "Semestral", "months": 6},
+        "annual": {"label": "Anual", "months": 12},
+    }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -39,6 +49,23 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             meat_entries = meat_entries.filter(organization=organization)
             residue_entries = residue_entries.filter(organization=organization)
             indemnities = indemnities.filter(organization=organization)
+
+        selected_range = self.request.GET.get("range", "monthly")
+        if selected_range not in self.RANGE_OPTIONS:
+            selected_range = "monthly"
+
+        weekly_income = self.filter_month_period_queryset(
+            weekly_income, "reference_year", "reference_month", selected_range
+        )
+        meat_entries = self.filter_month_period_queryset(
+            meat_entries, "reference_year", "reference_month", selected_range
+        )
+        residue_entries = self.filter_date_period_queryset(
+            residue_entries, "collected_on", selected_range
+        )
+        indemnities = self.filter_date_period_queryset(
+            indemnities, "occurred_on", selected_range
+        )
 
         recent_incomes = attach_income_status(
             list(
@@ -90,32 +117,112 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                         "indemnity_summary": indemnity_summary,
                     }
                 ),
+                "operational_panels": self.build_operational_panels(
+                    income_summary,
+                    meat_summary,
+                    residue_summary,
+                    indemnity_summary,
+                ),
+                "dashboard_ranges": [
+                    {"value": value, "label": config["label"]}
+                    for value, config in self.RANGE_OPTIONS.items()
+                ],
+                "selected_dashboard_range": selected_range,
             }
         )
         return context
 
+    def get_period_window(self, anchor, selected_range):
+        months = self.RANGE_OPTIONS[selected_range]["months"] - 1
+        year = anchor.year
+        month = anchor.month - months
+        while month <= 0:
+            month += 12
+            year -= 1
+        start_date = date(year, month, 1)
+        return year, month, start_date
+
+    def filter_month_period_queryset(self, queryset, year_field, month_field, selected_range):
+        latest = queryset.order_by(f"-{year_field}", f"-{month_field}").first()
+        if not latest:
+            return queryset
+        anchor = date(getattr(latest, year_field), getattr(latest, month_field), 1)
+        start_year, start_month, _ = self.get_period_window(anchor, selected_range)
+        return queryset.filter(
+            Q(**{f"{year_field}__gt": start_year})
+            | Q(**{year_field: start_year, f"{month_field}__gte": start_month})
+        )
+
+    def filter_date_period_queryset(self, queryset, field_name, selected_range):
+        latest = queryset.order_by(f"-{field_name}").first()
+        if not latest:
+            return queryset
+        anchor = getattr(latest, field_name).replace(day=1)
+        _, _, start_date = self.get_period_window(anchor, selected_range)
+        return queryset.filter(**{f"{field_name}__gte": start_date})
+
     def build_income_chart(self, weekly_income):
         series = defaultdict(float)
         for entry in weekly_income.order_by("reference_year", "reference_month", "week_number")[:100]:
-            label = f"{entry.reference_month:02d}/{entry.reference_year}"
+            label = f"{month_label(entry.reference_month)} / {entry.reference_year}"
             series[label] += float(entry.calculated_total)
-        return {"labels": list(series.keys()), "values": list(series.values())}
+        labels = list(series.keys())
+        values = list(series.values())
+        return {
+            "labels": labels,
+            "values": values,
+            "items": [{"label": label, "value": value, "color": "#8A2E1E"} for label, value in zip(labels, values)],
+        }
 
     def build_meat_chart(self, meat_entries):
         series = defaultdict(float)
         for entry in meat_entries.select_related("category")[:100]:
             series[entry.category.name] += float(entry.revenue_amount)
-        return {"labels": list(series.keys()), "values": list(series.values())}
+        labels = list(series.keys())
+        values = list(series.values())
+        colors = self.MEAT_COLORS[: len(labels)]
+        return {
+            "labels": labels,
+            "values": values,
+            "colors": colors,
+            "items": [{"label": label, "value": value, "color": color} for label, value, color in zip(labels, values, colors)],
+        }
 
     def build_semaphore_chart(self, context):
+        labels = ["Verde", "Amarelo", "Vermelho"]
+        values = [
+            context["income_summary"]["success"] + context["meat_summary"]["success"] + context["residue_summary"]["success"] + context["indemnity_summary"]["success"],
+            context["income_summary"]["warning"] + context["meat_summary"]["warning"] + context["residue_summary"]["warning"] + context["indemnity_summary"]["warning"],
+            context["income_summary"]["danger"] + context["meat_summary"]["danger"] + context["residue_summary"]["danger"] + context["indemnity_summary"]["danger"],
+        ]
         return {
-            "labels": ["Verde", "Amarelo", "Vermelho"],
-            "values": [
-                context["income_summary"]["success"] + context["meat_summary"]["success"] + context["residue_summary"]["success"] + context["indemnity_summary"]["success"],
-                context["income_summary"]["warning"] + context["meat_summary"]["warning"] + context["residue_summary"]["warning"] + context["indemnity_summary"]["warning"],
-                context["income_summary"]["danger"] + context["meat_summary"]["danger"] + context["residue_summary"]["danger"] + context["indemnity_summary"]["danger"],
-            ],
+            "labels": labels,
+            "values": values,
+            "colors": self.SEMAPHORE_COLORS,
+            "items": [{"label": label, "value": value, "color": color} for label, value, color in zip(labels, values, self.SEMAPHORE_COLORS)],
         }
+
+    def build_operational_panels(self, income_summary, meat_summary, residue_summary, indemnity_summary):
+        modules = [
+            ("Fontes de renda", income_summary),
+            ("Carnes", meat_summary),
+            ("Residuos", residue_summary),
+            ("Indenizacoes", indemnity_summary),
+        ]
+        panels = []
+        for label, summary in modules:
+            panels.append(
+                {
+                    "label": label,
+                    "total": summary["success"] + summary["warning"] + summary["danger"],
+                    "items": [
+                        {"label": "Verdes", "value": summary["success"], "color": "#1B8A5A"},
+                        {"label": "Amarelos", "value": summary["warning"], "color": "#E3B04B"},
+                        {"label": "Vermelhos", "value": summary["danger"], "color": "#C13C37"},
+                    ],
+                }
+            )
+        return panels
 
 
 class SwitchOrganizationView(LoginRequiredMixin, View):

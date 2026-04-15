@@ -117,3 +117,118 @@
   - categoria preenchendo preco por kg automaticamente
   - preco por kg em formato monetario brasileiro
   - label `Categoria` em pt-BR
+
+## 2026-04-14 - regionalizacao, acessos e operacao
+
+### Base de regionalizacao e internacionalizacao
+- Inclusao de `LocaleMiddleware`, `LANGUAGES` e `LOCALE_PATHS` no projeto.
+- Preparacao da organizacao para persistir:
+  - moeda padrao (`BRL`, `USD`, `EUR`)
+  - idioma padrao (`pt-br`, `en`, `es`)
+- Ativacao automatica do idioma da organizacao no middleware.
+- Criacao de camada centralizada de formatacao para:
+  - moeda
+  - numero
+  - kg
+  - g
+  - l
+  - rotulos de mes, semana e unidade
+
+### Navegacao e consistencia visual
+- Inclusao de breadcrumb clicavel no cabecalho compartilhado.
+- Uso de titulos e subtitulos padronizados nas telas principais.
+- Atualizacao do layout base para expor idioma e moeda ao frontend.
+- Padronizacao visual de toggles/switches e cards de acesso.
+
+### Operacoes
+- Listagens de fontes de renda, carnes, residuos e indenizacoes atualizadas para usar a camada centralizada de formatacao.
+- Valores monetarios agora renderizados conforme a moeda configurada da organizacao.
+- Pesos e volumes padronizados em kg, g e l nas tabelas e cards.
+- Limpeza das colunas de cadastros:
+  - `Configuracao` -> `Preco base` em fontes de renda
+  - coluna de carnes simplificada para `Preco/Kg`
+  - coluna de residuos simplificada para `Meta`
+- Detalhes operacionais passaram a exibir valores formatados por tipo de campo.
+
+### Modulo de acessos
+- Nova tela de acessos com:
+  - selecao de usuario por dropdown
+  - cards por modulo
+  - toggle de ativacao/desativacao por tela
+  - persistencia via `UserModuleAccess`
+- Distincao visual clara entre acessos ativos e inativos.
+
+### Modulo de carnes
+- Listagem expandida com:
+  - media por cabeca
+  - media geral
+  - media anterior
+  - receita
+  - doacao
+  - tendencia
+- Resumo gerencial com receita total, peso total, bovinos abatidos e doacao controlada.
+- Melhor e pior rendimento destacados na tela.
+- Formulario passa a calcular automaticamente a media por cabeca a partir de peso e abate.
+- Formulario busca historico para sugerir media do mes anterior e media geral quando nao informadas.
+
+### Modulo de indenizacoes
+- Leitura de negocio reforcada para:
+  - perda bruta
+  - valor recuperado
+  - prejuizo liquido
+  - percentual de recuperacao
+- Inclusao de status gerencial:
+  - sem prejuizo liquido
+  - prejuizo integral
+  - perda parcialmente recuperada
+- Inclusao de insights de motivo recorrente, produto com mais perdas e responsavel recorrente.
+- Inclusao de serie mensal de prejuizo liquido para visualizacao gerencial.
+
+### Validacao tecnica
+- Criada migration `organizations.0002_organization_default_currency_and_more`.
+- Validado com `manage.py check`.
+- Validado com smoke test autenticado nas rotas principais:
+  - dashboard
+  - operacoes
+  - cadastros
+  - acessos
+  - contas
+  - organizacoes
+
+## 2026-04-15 - carga documental e dashboard de carnes
+
+### Carga documental para demonstracao real
+- Criado comando `manage.py load_document_samples` para popular o SQLite com dados transcritos dos documentos operacionais enviados.
+- Carga aplicada para:
+  - `CARNES MARCO 2026`
+  - `BALANCO GERAL FONTES DE RENDA (MARCO)`
+  - `INDENIZACOES MARCO DE 2026`
+  - `RESIDUOS FEVEREIRO DE 2026`
+- Base preenchida com:
+  - 23 registros de carnes
+  - 28 registros de fontes de renda
+  - 8 registros de indenizacoes
+  - 10 registros de residuos
+
+### Tela de carnes mais visual
+- A listagem de `Carnes` deixou de depender de cards isolados e passou a exibir um dashboard do periodo.
+- Inclusos graficos para:
+  - receita por categoria
+  - peso por categoria
+  - doacao por categoria
+  - media por cabeca
+- Inclusos insights automaticos destacando lideres de receita, peso, doacao e rendimento.
+
+### Observacoes desta carga
+- A transcricao foi manual a partir das imagens, priorizando os trechos mais legiveis.
+- Em alguns itens de carnes, o `preco_por_kg` do lancamento foi derivado de `receita / peso` para preservar a receita exibida no documento.
+- Os dados servem para demonstracao operacional realista e podem ser refinados depois com importador guiado ou revisao humana linha a linha.
+
+### Filtros analiticos do dashboard
+- Inclusao de seletor de janela analitica no dashboard principal:
+  - mensal
+  - trimestral
+  - semestral
+  - anual
+- O filtro passou a afetar os graficos principais e os resumos operacionais do dashboard.
+- O comparativo mensal de `Receita por competencia` agora considera fevereiro e marco para `Fontes de renda`, incluindo fevereiro com `R$ 277.000,00`.

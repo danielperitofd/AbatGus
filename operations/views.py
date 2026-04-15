@@ -1,10 +1,15 @@
+from collections import Counter, defaultdict
+from decimal import Decimal
+
 from django.contrib import messages
-from django.db.models import ProtectedError
+from django.db.models import ProtectedError, Sum
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, UpdateView, View
 
+from core.formatting import format_currency, format_measure, month_label, unit_label, week_label
 from core.mixins import OrganizationManagerRequiredMixin, OrganizationScopedMixin
 
 from .forms import (
@@ -17,6 +22,42 @@ from .forms import (
     SpreadsheetImportForm,
     WeeklyIncomeEntryForm,
 )
+
+
+def build_period_label(reference_month, reference_year, week_number=None):
+    parts = [month_label(reference_month), str(reference_year)]
+    if week_number:
+        parts.append(week_label(week_number))
+    return " · ".join(parts)
+
+
+def format_detail_value(field_name, value, instance=None):
+    if value in (None, ""):
+        return "-"
+    if field_name in {"unit_price", "default_price", "price_per_kg", "previous_price_per_kg", "unit_price", "outgoing_amount", "reversal_amount"}:
+        return format_currency(value)
+    if field_name in {"average_per_head_grams", "average_general_grams", "average_previous_month_grams"}:
+        return format_measure(value, "g")
+    if field_name in {"weight_kg", "donation_kg"}:
+        return format_measure(value, "kg")
+    if field_name == "quantity" and instance and hasattr(instance, "category") and getattr(instance.category, "unit", None) == "LITER":
+        return format_measure(value, "l")
+    if field_name == "target_amount":
+        unit = "kg"
+        if instance and hasattr(instance, "unit"):
+            unit = unit_label(instance.unit)
+        return format_measure(value, unit)
+    if field_name == "reference_month":
+        return month_label(value)
+    if field_name == "week_number":
+        return week_label(value)
+    if field_name == "unit":
+        return unit_label(value)
+    if field_name.endswith("_on") and hasattr(value, "strftime"):
+        return value.strftime("%d/%m/%Y")
+    if field_name == "is_active":
+        return _("Ativo") if value else _("Inativo")
+    return value
 from .models import (
     IncomeItem,
     IndemnityRecord,
@@ -95,6 +136,8 @@ class OperationListView(OperationScopedQuerysetMixin, ListView):
             {
                 "title": self.module_title,
                 "description": self.module_description,
+                "page_title": self.module_title,
+                "page_description": self.module_description,
                 "create_url_name": self.create_url_name,
                 "import_url_name": self.import_url_name,
                 "export_excel_url_name": self.export_excel_url_name,
@@ -122,6 +165,8 @@ class CatalogListView(OperationScopedQuerysetMixin, ListView):
     delete_url_name = ""
     module_title = ""
     module_description = ""
+    config_header = "Configuracao"
+    config_mode = "default"
 
     def filter_by_query(self, queryset, query):
         return queryset.filter(name__icontains=query)
@@ -139,10 +184,14 @@ class CatalogListView(OperationScopedQuerysetMixin, ListView):
             {
                 "title": self.module_title,
                 "description": self.module_description,
+                "page_title": self.module_title,
+                "page_description": self.module_description,
                 "create_url_name": self.create_url_name,
                 "update_url_name": self.update_url_name,
                 "delete_url_name": self.delete_url_name,
                 "filters": {"q": self.request.GET.get("q", "")},
+                "config_header": self.config_header,
+                "config_mode": self.config_mode,
             }
         )
         return context
@@ -175,9 +224,11 @@ class OperationDetailView(OperationScopedQuerysetMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["detail_fields"] = [
-            (field.verbose_name, getattr(self.object, field.name))
+            (field.verbose_name, format_detail_value(field.name, getattr(self.object, field.name), self.object))
             for field in self.object._meta.fields
         ]
+        context["page_title"] = _("Detalhes do registro")
+        context["page_description"] = _("Visualizacao completa do lancamento operacional.")
         return context
 
 
@@ -186,6 +237,12 @@ class OperationUpdateView(OperationScopedQuerysetMixin, UpdateView):
 
     def get_success_url(self):
         return reverse_lazy(self.success_url_name)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.setdefault("page_title", _("Editar registro"))
+        context.setdefault("page_description", _("Atualize os dados deste lancamento."))
+        return context
 
 
 class OperationDeleteView(OperationScopedQuerysetMixin, DeleteView):
@@ -306,6 +363,15 @@ class WeeklyIncomeEntryListView(OperationListView):
     def filter_by_query(self, queryset, query):
         return queryset.filter(item__name__icontains=query)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        entries = context["entries"]
+        context["summary_cards"] = [
+            {"label": "Faturamento lancado", "value": format_currency(sum(entry.calculated_total for entry in entries))},
+            {"label": "Quantidade total", "value": sum(entry.quantity for entry in entries)},
+        ]
+        return context
+
 
 class WeeklyIncomeEntryCreateView(OrganizationScopedMixin, OrganizationManagerRequiredMixin, CreateView):
     model = WeeklyIncomeEntry
@@ -401,6 +467,79 @@ class MeatProductionEntryListView(OperationListView):
 
     def filter_by_query(self, queryset, query):
         return queryset.filter(category__name__icontains=query)
+
+    def apply_filters(self, queryset):
+        queryset = super().apply_filters(queryset)
+        performance = self.request.GET.get("performance", "").strip()
+        donation = self.request.GET.get("donation", "").strip()
+        if performance == "above":
+            queryset = queryset.filter(average_per_head_grams__gte=Decimal("0.01"))
+        if donation == "yes":
+            queryset = queryset.filter(donation_kg__gt=0)
+        elif donation == "no":
+            queryset = queryset.filter(donation_kg=0)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        entries = context["entries"]
+        total_revenue = sum(entry.revenue_amount for entry in entries)
+        total_weight = sum(entry.weight_kg for entry in entries)
+        total_bovines = sum(entry.slaughter_quantity for entry in entries)
+        total_donation = sum(entry.donation_kg for entry in entries)
+        grouped = defaultdict(
+            lambda: {"revenue": Decimal("0"), "weight": Decimal("0"), "donation": Decimal("0"), "bovines": 0, "avg_sum": Decimal("0"), "count": 0}
+        )
+        for entry in entries:
+            bucket = grouped[entry.category.name]
+            bucket["revenue"] += entry.revenue_amount
+            bucket["weight"] += entry.weight_kg
+            bucket["donation"] += entry.donation_kg
+            bucket["bovines"] += entry.slaughter_quantity
+            bucket["avg_sum"] += entry.average_per_head_grams
+            bucket["count"] += 1
+        labels = list(grouped.keys())
+        average_values = [
+            float((payload["avg_sum"] / payload["count"]).quantize(Decimal("0.01"))) if payload["count"] else 0
+            for payload in grouped.values()
+        ]
+        context["filters"].update(
+            {
+                "performance": self.request.GET.get("performance", ""),
+                "donation": self.request.GET.get("donation", ""),
+            }
+        )
+        revenue_leader = max(grouped.items(), key=lambda item: item[1]["revenue"], default=(None, None))
+        weight_leader = max(grouped.items(), key=lambda item: item[1]["weight"], default=(None, None))
+        donation_leader = max(grouped.items(), key=lambda item: item[1]["donation"], default=(None, None))
+        average_leader = max(
+            grouped.items(),
+            key=lambda item: (item[1]["avg_sum"] / item[1]["count"]) if item[1]["count"] else Decimal("0"),
+            default=(None, None),
+        )
+        context["meat_dashboard"] = {
+            "totals": {
+                "revenue": format_currency(total_revenue),
+                "weight": format_measure(total_weight, "kg"),
+                "bovines": total_bovines,
+                "donation": format_measure(total_donation, "kg"),
+            },
+            "charts": {
+                "labels": labels,
+                "revenue": [float(payload["revenue"]) for payload in grouped.values()],
+                "weight": [float(payload["weight"]) for payload in grouped.values()],
+                "donation": [float(payload["donation"]) for payload in grouped.values()],
+                "average": average_values,
+            },
+            "insights": [
+                f"Maior receita: {revenue_leader[0]} ({format_currency(revenue_leader[1]['revenue'])})" if revenue_leader[0] else None,
+                f"Maior peso: {weight_leader[0]} ({format_measure(weight_leader[1]['weight'], 'kg')})" if weight_leader[0] else None,
+                f"Maior doacao: {donation_leader[0]} ({format_measure(donation_leader[1]['donation'], 'kg')})" if donation_leader[0] and donation_leader[1]["donation"] else None,
+                f"Melhor media/cabeca: {average_leader[0]} ({format_measure(Decimal(str(max(average_values) if average_values else 0)), 'g')})" if average_leader[0] else None,
+            ],
+        }
+        context["meat_dashboard"]["insights"] = [item for item in context["meat_dashboard"]["insights"] if item]
+        return context
 
 
 class MeatProductionEntryCreateView(OrganizationScopedMixin, OrganizationManagerRequiredMixin, CreateView):
@@ -522,6 +661,17 @@ class ResidueCollectionListView(OperationListView):
     def filter_by_query(self, queryset, query):
         return queryset.filter(category__name__icontains=query)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        entries = context["entries"]
+        total_revenue = sum(entry.revenue_amount for entry in entries)
+        total_quantity = sum(entry.quantity for entry in entries)
+        context["summary_cards"] = [
+            {"label": "Receita estimada", "value": format_currency(total_revenue)},
+            {"label": "Volume coletado", "value": format_measure(total_quantity, "kg")},
+        ]
+        return context
+
 
 class ResidueCollectionCreateView(OrganizationScopedMixin, OrganizationManagerRequiredMixin, CreateView):
     model = ResidueCollection
@@ -627,6 +777,40 @@ class IndemnityRecordListView(OperationListView):
     def filter_by_query(self, queryset, query):
         return queryset.filter(product__icontains=query)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        entries = context["entries"]
+        total_gross = sum(entry.outgoing_amount for entry in entries)
+        total_recovered = sum(entry.reversal_amount for entry in entries)
+        total_net = sum(entry.net_amount for entry in entries)
+        recovery_rate = Decimal("0")
+        if total_gross:
+            recovery_rate = (total_recovered / total_gross) * Decimal("100")
+        reason_counter = Counter(entry.reason for entry in entries if entry.reason)
+        product_counter = Counter(entry.product for entry in entries if entry.product)
+        responsible_counter = Counter(entry.responsible_name for entry in entries if entry.responsible_name)
+        monthly_series = defaultdict(Decimal)
+        for entry in entries:
+            key = f"{entry.occurred_on.month:02d}/{entry.occurred_on.year}"
+            monthly_series[key] += entry.net_amount
+        context["summary_cards"] = [
+            {"label": "Perda bruta", "value": format_currency(total_gross)},
+            {"label": "Valor recuperado", "value": format_currency(total_recovered)},
+            {"label": "Prejuizo liquido", "value": format_currency(total_net)},
+            {"label": "Percentual de recuperacao", "value": f"{recovery_rate.quantize(Decimal('0.01'))}%"},
+        ]
+        context["indemnity_insights"] = [
+            f"Motivo mais frequente: {reason_counter.most_common(1)[0][0]}" if reason_counter else None,
+            f"Produto com mais perdas: {product_counter.most_common(1)[0][0]}" if product_counter else None,
+            f"Responsavel recorrente: {responsible_counter.most_common(1)[0][0]}" if responsible_counter else None,
+        ]
+        context["indemnity_insights"] = [item for item in context["indemnity_insights"] if item]
+        context["indemnity_chart"] = {
+            "labels": list(monthly_series.keys()),
+            "values": [float(value) for value in monthly_series.values()],
+        }
+        return context
+
 
 class IndemnityRecordCreateView(OrganizationScopedMixin, OrganizationManagerRequiredMixin, CreateView):
     model = IndemnityRecord
@@ -690,6 +874,8 @@ class IndemnityPdfExportView(PdfExportView, IndemnityExcelExportView):
 class IncomeItemListView(CatalogListView):
     model = IncomeItem
     module_title = "Itens de fontes de renda"
+    config_header = "Preco base"
+    config_mode = "income"
     module_description = "Cadastre os itens-base usados nos lançamentos semanais."
     create_url_name = "operations:income-item-create"
     update_url_name = "operations:income-item-update"
@@ -720,6 +906,8 @@ class IncomeItemDeleteView(CatalogDeleteView):
 class MeatCategoryListView(CatalogListView):
     model = MeatCategory
     module_title = "Categorias de carnes"
+    config_header = "Preco/Kg"
+    config_mode = "meat"
     module_description = "Cadastre faixas de preço e parâmetros padrão por categoria."
     create_url_name = "operations:meat-category-create"
     update_url_name = "operations:meat-category-update"
@@ -750,6 +938,8 @@ class MeatCategoryDeleteView(CatalogDeleteView):
 class ResidueCategoryListView(CatalogListView):
     model = ResidueCategory
     module_title = "Categorias de resíduos"
+    config_header = "Meta"
+    config_mode = "residue"
     module_description = "Cadastre metas mensais, unidade e valor unitário por subproduto."
     create_url_name = "operations:residue-category-create"
     update_url_name = "operations:residue-category-update"

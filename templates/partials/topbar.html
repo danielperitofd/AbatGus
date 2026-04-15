@@ -1,13 +1,29 @@
+{% load i18n %}
 <section class="topbar-shell">
   <div>
-    <h1 class="page-title">{% block page_title %}Painel operacional{% endblock %}</h1>
-    <p class="page-subtitle">{% block page_subtitle %}Controle financeiro, produtivo e sanitário em uma única operação.{% endblock %}</p>
+    {% if breadcrumbs %}
+      <nav aria-label="breadcrumb" class="mb-2">
+        <ol class="breadcrumb abat-breadcrumb mb-0">
+          {% for crumb in breadcrumbs %}
+            {% if forloop.last %}
+              <li class="breadcrumb-item active" aria-current="page">{{ crumb.label }}</li>
+            {% elif crumb.url %}
+              <li class="breadcrumb-item"><a href="{{ crumb.url }}">{{ crumb.label }}</a></li>
+            {% else %}
+              <li class="breadcrumb-item">{{ crumb.label }}</li>
+            {% endif %}
+          {% endfor %}
+        </ol>
+      </nav>
+    {% endif %}
+    <h1 class="page-title">{{ page_title|default:page_title_context }}</h1>
+    <p class="page-subtitle">{{ page_description|default:page_subtitle_context }}</p>
   </div>
   <div class="topbar-actions">
     {% if can_see_admin_tools %}
       <div class="dropdown">
         <button class="btn btn-light rounded-4 dropdown-toggle" data-bs-toggle="dropdown">
-          {{ current_organization|default:"Selecionar organização" }}
+          {% if current_organization %}{{ current_organization }}{% else %}{% trans "Selecionar organizacao" %}{% endif %}
         </button>
         <div class="dropdown-menu dropdown-menu-end p-2 rounded-4 border-0 shadow">
           {% for org in organizations %}

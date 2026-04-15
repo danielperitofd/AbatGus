@@ -1,22 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Acessos | AbatGus{% endblock %}
+{% load access_extras i18n %}
+{% block title %}{% trans "Acessos" %} | AbatGus{% endblock %}
 {% block content %}
 <section class="content-card">
   <div class="section-heading">
-    <div><h2>Gestão de acessos</h2><p>Estrutura inicial para permissões por módulo e hierarquia.</p></div>
+    <div>
+      <h2>{{ page_title }}</h2>
+      <p>{{ page_description }}</p>
+    </div>
   </div>
-  <div class="row g-3">
-    {% for module in modules %}
-      <div class="col-md-6 col-xl-4">
-        <div class="metric-card">
-          <div class="metric-label">{{ module.parent.name|default:"Raiz" }}</div>
-          <div class="metric-value fs-5">{{ module.name }}</div>
-          <div class="metric-foot">{{ module.description|default:"Sem descrição." }}</div>
-        </div>
+
+  <form method="get" class="filter-panel mb-4">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-8">
+        <label class="form-label">{{ user_form.user.label }}</label>
+        {{ user_form.user }}
       </div>
-    {% empty %}
-      <div class="col-12"><div class="metric-card">Os módulos base serão populados pela seed inicial.</div></div>
-    {% endfor %}
-  </div>
+      <div class="col-md-4">
+        <button class="btn btn-outline-secondary rounded-4 w-100">{% trans "Carregar acessos" %}</button>
+      </div>
+    </div>
+  </form>
+
+  {% if target_user %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.user_id }}
+
+      <div class="info-strip mb-4">
+        {% trans "Editando acessos de" %} <strong>{{ target_user.display_name }}</strong> · {{ target_user.organization|default:"Sem organizacao" }}
+      </div>
+
+      {% for group_name, items in grouped_modules.items %}
+        <section class="content-card mb-4">
+          <div class="section-heading mb-3">
+            <div>
+              <h2>{{ group_name }}</h2>
+              <p>{% trans "Ative ou desative as telas que este usuario pode acessar." %}</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            {% for item in items %}
+              <div class="col-md-6 col-xl-4">
+                <div class="access-card {% if item.enabled %}enabled{% else %}disabled{% endif %}">
+                  <div>
+                    <div class="metric-label">{{ item.module.parent.name|default:"Modulo" }}</div>
+                    <h3 class="fs-5 mb-1">{{ item.module.name }}</h3>
+                    <p class="metric-foot mb-3">{{ item.module.description|default:"Sem descricao cadastrada." }}</p>
+                    <span class="status-pill {% if item.enabled %}success{% else %}secondary{% endif %}">
+                      {% if item.enabled %}{% trans "Ativo" %}{% else %}{% trans "Inativo" %}{% endif %}
+                    </span>
+                  </div>
+                  <div class="form-check form-switch m-0 access-toggle">
+                    {{ form|get_item:item.module.id }}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-primary rounded-4 px-4">{% trans "Salvar acessos" %}</button>
+      </div>
+    </form>
+  {% else %}
+    <div class="info-card">
+      <div class="metric-foot mb-0">{% trans "Selecione um usuario para visualizar e ajustar os acessos por tela." %}</div>
+    </div>
+  {% endif %}
 </section>
 {% endblock %}

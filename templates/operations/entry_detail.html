@@ -1,17 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Detalhes | AbatGus{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Detalhes" %} | AbatGus{% endblock %}
 {% block content %}
 <section class="content-card">
   <div class="section-heading">
     <div>
-      <h2>Detalhes do registro</h2>
-      <p>Visualização completa do lançamento operacional.</p>
+      <h2>{{ page_title }}</h2>
+      <p>{{ page_description }}</p>
     </div>
   </div>
   <div class="row g-3">
     {% for label, value in detail_fields %}
       <div class="col-md-6 col-xl-4">
-        <div class="metric-card">
+        <div class="metric-card h-100">
           <div class="metric-label">{{ label|capfirst }}</div>
           <div class="metric-foot">{{ value|default:"-" }}</div>
         </div>

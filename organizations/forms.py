@@ -7,7 +7,11 @@ class OrganizationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs["class"] = "form-control"
+            if isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs["class"] = "form-check-input"
+                field.widget.attrs["role"] = "switch"
+            else:
+                field.widget.attrs["class"] = "form-select" if isinstance(field.widget, forms.Select) else "form-control"
 
     class Meta:
         model = Organization
@@ -18,6 +22,8 @@ class OrganizationForm(forms.ModelForm):
             "contact_email",
             "phone",
             "logo",
+            "default_currency",
+            "default_language",
             "primary_color",
             "secondary_color",
             "is_active",

@@ -1,44 +1,155 @@
 {% extends "base.html" %}
-{% block title %}Carnes | AbatGus{% endblock %}
+{% load formatters i18n %}
+{% block title %}{{ title }} | AbatGus{% endblock %}
 {% block content %}
 <section class="content-card">
   <div class="section-heading">
-    <div><h2>{{ title }}</h2><p>{{ description }}</p></div>
+    <div>
+      <h2>{{ title }}</h2>
+      <p>{{ description }}</p>
+    </div>
     <div class="d-flex gap-2 flex-wrap">
-      <a href="{% url import_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-upload me-2"></i>Importar Excel</a>
-      <a href="{% url export_excel_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-file-earmark-excel me-2"></i>Excel</a>
-      <a href="{% url export_pdf_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-printer me-2"></i>PDF</a>
-      <a href="{% url create_url_name %}" class="btn btn-primary rounded-4"><i class="bi bi-plus-circle me-2"></i>Nova produção</a>
+      <a href="{% url import_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-upload me-2"></i>{% trans "Importar Excel" %}</a>
+      <a href="{% url export_excel_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-file-earmark-excel me-2"></i>{% trans "Excel" %}</a>
+      <a href="{% url export_pdf_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-printer me-2"></i>{% trans "PDF" %}</a>
+      <a href="{% url create_url_name %}" class="btn btn-primary rounded-4"><i class="bi bi-plus-circle me-2"></i>{% trans "Nova producao" %}</a>
     </div>
   </div>
+
   <div class="status-grid mb-4">
-    <div class="status-card success"><span>Verde</span><strong>{{ status_summary.success }}</strong></div>
-    <div class="status-card warning"><span>Amarelo</span><strong>{{ status_summary.warning }}</strong></div>
-    <div class="status-card danger"><span>Vermelho</span><strong>{{ status_summary.danger }}</strong></div>
+    <div class="status-card success"><span>{% trans "Verde" %}</span><strong>{{ status_summary.success }}</strong></div>
+    <div class="status-card warning"><span>{% trans "Amarelo" %}</span><strong>{{ status_summary.warning }}</strong></div>
+    <div class="status-card danger"><span>{% trans "Vermelho" %}</span><strong>{{ status_summary.danger }}</strong></div>
   </div>
+
+  {% if meat_dashboard %}
+    <section class="content-card mb-4">
+      <div class="section-heading mb-3">
+        <div>
+          <h2>{% trans "Dashboard do periodo" %}</h2>
+          <p>{% trans "Comparativo visual entre Cabeca, File, Limpeza, Pano e demais categorias carregadas." %}</p>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-xl-3">
+          <div class="info-card h-100">
+            <div class="metric-label">{% trans "Receita total" %}</div>
+            <div class="metric-value">{{ meat_dashboard.totals.revenue }}</div>
+            <div class="metric-foot">{% trans "Peso total" %}: {{ meat_dashboard.totals.weight }}</div>
+            <div class="metric-foot">{% trans "Bovinos abatidos" %}: {{ meat_dashboard.totals.bovines }}</div>
+            <div class="metric-foot">{% trans "Doacao" %}: {{ meat_dashboard.totals.donation }}</div>
+          </div>
+        </div>
+        <div class="col-xl-9">
+          <div class="row g-3 h-100">
+            <div class="col-md-6">
+              <div class="metric-card h-100">
+                <div class="metric-label">{% trans "Receita por categoria" %}</div>
+                <canvas id="meatRevenueChart" height="180"></canvas>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card h-100">
+                <div class="metric-label">{% trans "Peso por categoria" %}</div>
+                <canvas id="meatWeightChart" height="180"></canvas>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card h-100">
+                <div class="metric-label">{% trans "Doacao por categoria" %}</div>
+                <canvas id="meatDonationChart" height="180"></canvas>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card h-100">
+                <div class="metric-label">{% trans "Media por cabeca" %}</div>
+                <canvas id="meatAverageChart" height="180"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if meat_dashboard.insights %}
+        <div class="row g-3">
+          {% for insight in meat_dashboard.insights %}
+            <div class="col-md-6 col-xl-3">
+              <div class="info-card h-100">
+                <div class="metric-foot mb-0">{{ insight }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </section>
+  {% endif %}
+
   <form method="get" class="filter-panel mb-4">
     <div class="row g-3">
-      <div class="col-md-3"><label class="form-label">Buscar categoria</label><input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="Ex.: filé"></div>
-      <div class="col-md-2"><label class="form-label">Ano</label><input type="number" name="year" value="{{ filters.year }}" class="form-control" placeholder="2026"></div>
-      <div class="col-md-2"><label class="form-label">Mês</label><input type="number" name="month" value="{{ filters.month }}" class="form-control" placeholder="3"></div>
-      <div class="col-md-2"><label class="form-label">Semana</label><input type="number" name="week" value="{{ filters.week }}" class="form-control" placeholder="1"></div>
-      <div class="col-md-2"><label class="form-label">Status</label><select name="status" class="form-select"><option value="">Todos</option><option value="success" {% if filters.status == 'success' %}selected{% endif %}>Verde</option><option value="warning" {% if filters.status == 'warning' %}selected{% endif %}>Amarelo</option><option value="danger" {% if filters.status == 'danger' %}selected{% endif %}>Vermelho</option></select></div>
-      <div class="col-md-1 d-flex align-items-end"><button class="btn btn-outline-secondary rounded-4 w-100">OK</button></div>
+      <div class="col-md-3"><label class="form-label">{% trans "Buscar categoria" %}</label><input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="{% trans 'Ex.: file' %}"></div>
+      <div class="col-md-2"><label class="form-label">{% trans "Ano" %}</label><input type="number" name="year" value="{{ filters.year }}" class="form-control" placeholder="2026"></div>
+      <div class="col-md-2"><label class="form-label">{% trans "Mes" %}</label><input type="number" name="month" value="{{ filters.month }}" class="form-control" placeholder="3"></div>
+      <div class="col-md-2"><label class="form-label">{% trans "Semana" %}</label><input type="number" name="week" value="{{ filters.week }}" class="form-control" placeholder="1"></div>
+      <div class="col-md-3">
+        <label class="form-label">{% trans "Status" %}</label>
+        <select name="status" class="form-select">
+          <option value="">{% trans "Todos" %}</option>
+          <option value="success" {% if filters.status == 'success' %}selected{% endif %}>{% trans "Verde" %}</option>
+          <option value="warning" {% if filters.status == 'warning' %}selected{% endif %}>{% trans "Amarelo" %}</option>
+          <option value="danger" {% if filters.status == 'danger' %}selected{% endif %}>{% trans "Vermelho" %}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">{% trans "Doacao" %}</label>
+        <select name="donation" class="form-select">
+          <option value="">{% trans "Todas" %}</option>
+          <option value="yes" {% if filters.donation == 'yes' %}selected{% endif %}>{% trans "Com doacao" %}</option>
+          <option value="no" {% if filters.donation == 'no' %}selected{% endif %}>{% trans "Sem doacao" %}</option>
+        </select>
+      </div>
+      <div class="col-md-9 d-flex align-items-end"><button class="btn btn-outline-secondary rounded-4 w-100">{% trans "Aplicar filtros" %}</button></div>
     </div>
   </form>
+
   <div class="table-responsive">
     <table class="table abat-table">
-      <thead><tr><th>Categoria</th><th>Período</th><th>Abate</th><th>Peso</th><th>Receita</th><th>Doação</th><th>Semáforo</th><th></th></tr></thead>
+      <thead>
+        <tr>
+          <th>{% trans "Tipo" %}</th>
+          <th>{% trans "Periodo" %}</th>
+          <th>{% trans "Bovinos" %}</th>
+          <th>{% trans "Peso" %}</th>
+          <th>{% trans "Media/Cabeca" %}</th>
+          <th>{% trans "Media Geral" %}</th>
+          <th>{% trans "Media Anterior" %}</th>
+          <th>{% trans "Receita" %}</th>
+          <th>{% trans "Doacao" %}</th>
+          <th>{% trans "Tendencia" %}</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody>
         {% for item in entries %}
           <tr>
             <td>{{ item.category.name }}</td>
-            <td>{{ item.reference_month }}/{{ item.reference_year }} · S{{ item.week_number }}</td>
+            <td>{{ item.reference_month|month_name }} · {{ item.reference_year }} · {{ item.week_number|week_name }}</td>
             <td>{{ item.slaughter_quantity }}</td>
-            <td>{{ item.weight_kg }} kg</td>
-            <td>R$ {{ item.revenue_amount }}</td>
-            <td>{{ item.donation_kg }} kg</td>
-            <td><span class="status-pill {{ item.semaphore.color }}">{{ item.semaphore.label }}</span></td>
+            <td>{{ item.weight_kg|kg }}</td>
+            <td>{{ item.average_per_head_grams|grams }}</td>
+            <td>{{ item.average_general_grams|grams }}</td>
+            <td>{{ item.average_previous_month_grams|grams }}</td>
+            <td>{{ item.revenue_amount|brl }}</td>
+            <td>{{ item.donation_kg|kg }}</td>
+            <td>
+              {% if item.previous_trend == "up" %}
+                <span class="status-pill success">↑ {% trans "Alta" %}</span>
+              {% elif item.previous_trend == "down" %}
+                <span class="status-pill danger">↓ {% trans "Queda" %}</span>
+              {% else %}
+                <span class="status-pill secondary">→ {% trans "Estavel" %}</span>
+              {% endif %}
+            </td>
             <td class="text-end">
               <div class="d-inline-flex gap-2">
                 <a href="{% url 'operations:meat-detail' item.pk %}" class="btn btn-sm btn-outline-secondary rounded-4"><i class="bi bi-eye"></i></a>
@@ -48,10 +159,65 @@
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="8">Nenhuma produção registrada.</td></tr>
+          <tr><td colspan="11">{% trans "Nenhuma producao registrada." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </section>
+
+{{ meat_dashboard.charts|json_script:"meat-dashboard-data" }}
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+  const meatDashboardSource = document.getElementById("meat-dashboard-data");
+  if (meatDashboardSource) {
+    const data = JSON.parse(meatDashboardSource.textContent);
+    const palette = ["#8A2E1E", "#E3B04B", "#314E52", "#7C8C3B", "#C96A4A", "#11212D", "#D9863B"];
+
+    new Chart(document.getElementById("meatRevenueChart"), {
+      type: "bar",
+      data: {
+        labels: data.labels,
+        datasets: [{ data: data.revenue, backgroundColor: palette, borderRadius: 12 }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById("meatWeightChart"), {
+      type: "doughnut",
+      data: {
+        labels: data.labels,
+        datasets: [{ data: data.weight, backgroundColor: palette }]
+      },
+      options: { responsive: true }
+    });
+
+    new Chart(document.getElementById("meatDonationChart"), {
+      type: "bar",
+      data: {
+        labels: data.labels,
+        datasets: [{ data: data.donation, backgroundColor: "#C96A4A", borderRadius: 12 }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById("meatAverageChart"), {
+      type: "radar",
+      data: {
+        labels: data.labels,
+        datasets: [{
+          label: "Media por cabeca (g)",
+          data: data.average,
+          backgroundColor: "rgba(49, 78, 82, 0.12)",
+          borderColor: "#314E52",
+          pointBackgroundColor: "#314E52"
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+  }
+</script>
 {% endblock %}

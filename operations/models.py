@@ -106,6 +106,22 @@ class MeatProductionEntry(OrganizationOwnedModel):
     def donation_value(self):
         return (self.donation_kg or Decimal("0")) * (self.price_per_kg or Decimal("0"))
 
+    @property
+    def previous_trend(self):
+        if self.average_per_head_grams > self.average_previous_month_grams:
+            return "up"
+        if self.average_per_head_grams < self.average_previous_month_grams:
+            return "down"
+        return "stable"
+
+    @property
+    def general_trend(self):
+        if self.average_per_head_grams > self.average_general_grams:
+            return "up"
+        if self.average_per_head_grams < self.average_general_grams:
+            return "down"
+        return "stable"
+
     def __str__(self):
         return f"{self.category} - S{self.week_number}/{self.reference_month}/{self.reference_year}"
 
@@ -170,6 +186,20 @@ class IndemnityRecord(OrganizationOwnedModel):
     @property
     def net_amount(self):
         return (self.outgoing_amount or Decimal("0")) - (self.reversal_amount or Decimal("0"))
+
+    @property
+    def recovery_percentage(self):
+        if not self.outgoing_amount:
+            return Decimal("0")
+        return ((self.reversal_amount or Decimal("0")) / self.outgoing_amount) * Decimal("100")
+
+    @property
+    def financial_status(self):
+        if self.net_amount == 0:
+            return "Sem prejuizo liquido"
+        if self.reversal_amount == 0:
+            return "Prejuizo integral"
+        return "Perda parcialmente recuperada"
 
     def __str__(self):
         return f"{self.product} - {self.occurred_on:%d/%m/%Y}"

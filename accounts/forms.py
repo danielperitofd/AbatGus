@@ -7,9 +7,13 @@ from .models import User
 class BootstrapFormMixin:
     def apply_bootstrap(self):
         for field in self.fields.values():
-            css_class = "form-select" if isinstance(field.widget, forms.Select) else "form-control"
-            existing = field.widget.attrs.get("class", "")
-            field.widget.attrs["class"] = f"{existing} {css_class}".strip()
+            if isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs["class"] = "form-check-input"
+                field.widget.attrs["role"] = "switch"
+            else:
+                css_class = "form-select" if isinstance(field.widget, forms.Select) else "form-control"
+                existing = field.widget.attrs.get("class", "")
+                field.widget.attrs["class"] = f"{existing} {css_class}".strip()
 
 
 class LoginForm(BootstrapFormMixin, AuthenticationForm):

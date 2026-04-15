@@ -1,3 +1,6 @@
+from django.utils import translation
+
+from core.runtime import set_current_organization
 from organizations.models import Organization
 
 
@@ -22,5 +25,9 @@ class CurrentOrganizationMiddleware:
                     pk=organization_id,
                     is_active=True,
                 ).first()
+                set_current_organization(request.current_organization)
+                if request.current_organization and request.current_organization.default_language:
+                    translation.activate(request.current_organization.default_language)
+                    request.LANGUAGE_CODE = request.current_organization.default_language
 
         return self.get_response(request)

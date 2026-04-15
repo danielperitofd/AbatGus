@@ -1,5 +1,8 @@
-from django import forms
 from datetime import date
+from decimal import Decimal, InvalidOperation
+
+from django import forms
+from django.db.models import Avg
 
 from .models import (
     IncomeItem,
@@ -10,6 +13,17 @@ from .models import (
     ResidueCollection,
     WeeklyIncomeEntry,
 )
+
+
+def parse_decimal_input(value):
+    if isinstance(value, Decimal):
+        return value
+    normalized = str(value or "").replace("R$", "").strip()
+    normalized = normalized.replace(".", "").replace(",", ".")
+    try:
+        return Decimal(normalized or "0")
+    except (InvalidOperation, ValueError):
+        return Decimal("0")
 
 
 class PriceAwareSelect(forms.Select):
@@ -34,7 +48,11 @@ class BootstrapModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs["class"] = "form-select" if isinstance(field.widget, forms.Select) else "form-control"
+            if isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs["class"] = "form-check-input"
+                field.widget.attrs["role"] = "switch"
+            else:
+                field.widget.attrs["class"] = "form-select" if isinstance(field.widget, forms.Select) else "form-control"
 
 
 class SpreadsheetImportForm(forms.Form):
@@ -52,9 +70,32 @@ class IncomeItemForm(BootstrapModelForm):
 
 
 class MeatCategoryForm(BootstrapModelForm):
+    price_per_kg = forms.CharField(label="Preço por Kg")
+    previous_price_per_kg = forms.CharField(label="Preço Anterior")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["price_per_kg"].widget = forms.TextInput(
+            attrs={"class": "form-control", "inputmode": "decimal"}
+        )
+        self.fields["previous_price_per_kg"].widget = forms.TextInput(
+            attrs={"class": "form-control", "inputmode": "decimal"}
+        )
+        if self.instance and self.instance.pk:
+            self.initial["price_per_kg"] = f"R$ {self.instance.price_per_kg:.2f}".replace(".", ",")
+            self.initial["previous_price_per_kg"] = f"R$ {self.instance.previous_price_per_kg:.2f}".replace(".", ",")
+
     class Meta:
         model = MeatCategory
         fields = ["name", "price_per_kg", "previous_price_per_kg", "donation_enabled", "is_active"]
+
+    def clean_price_per_kg(self):
+        value = str(self.cleaned_data["price_per_kg"]).replace("R$", "").strip()
+        return value.replace(".", "").replace(",", ".")
+
+    def clean_previous_price_per_kg(self):
+        value = str(self.cleaned_data["previous_price_per_kg"]).replace("R$", "").strip()
+        return value.replace(".", "").replace(",", ".")
 
 
 class ResidueCategoryForm(BootstrapModelForm):
@@ -176,6 +217,45 @@ class MeatProductionEntryForm(BootstrapModelForm):
     def clean_price_per_kg(self):
         value = str(self.cleaned_data["price_per_kg"]).replace("R$", "").strip()
         return value.replace(".", "").replace(",", ".")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        category = cleaned_data.get("category")
+        year = cleaned_data.get("reference_year")
+        month = cleaned_data.get("reference_month")
+        slaughter_quantity = cleaned_data.get("slaughter_quantity") or 0
+        weight_kg = parse_decimal_input(cleaned_data.get("weight_kg"))
+
+        if slaughter_quantity and weight_kg:
+            cleaned_data["average_per_head_grams"] = (weight_kg / Decimal(slaughter_quantity)) * Decimal("1000")
+
+        if category and year and month:
+            previous_entry = (
+                MeatProductionEntry.objects.filter(
+                    organization=category.organization,
+                    category=category,
+                    reference_year=year if month > 1 else year - 1,
+                    reference_month=month - 1 if month > 1 else 12,
+                )
+                .order_by("-week_number")
+                .first()
+            )
+            previous_average = previous_entry.average_per_head_grams if previous_entry else Decimal("0")
+            general_average = (
+                MeatProductionEntry.objects.filter(
+                    organization=category.organization,
+                    category=category,
+                    reference_year=year - 1,
+                ).aggregate(avg=Avg("average_per_head_grams"))["avg"]
+                or Decimal("0")
+            )
+
+            if not cleaned_data.get("average_previous_month_grams"):
+                cleaned_data["average_previous_month_grams"] = previous_average
+            if not cleaned_data.get("average_general_grams"):
+                cleaned_data["average_general_grams"] = general_average
+
+        return cleaned_data
 
 
 class ResidueCollectionForm(BootstrapModelForm):

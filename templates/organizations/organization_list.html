@@ -1,27 +1,39 @@
 {% extends "base.html" %}
-{% block title %}Organizações | AbatGus{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Organizacoes" %} | AbatGus{% endblock %}
 {% block content %}
-{% with title="Organizações" description="Gestão centralizada das operações cadastradas." create_url=urls %}
-{% endwith %}
 <section class="content-card">
   <div class="section-heading">
-    <div><h2>Organizações</h2><p>Cadastre logos, identidade visual e status operacional.</p></div>
-    <a href="{% url 'organizations:create' %}" class="btn btn-primary rounded-4">Nova organização</a>
+    <div>
+      <h2>{% trans "Organizacoes" %}</h2>
+      <p>{% trans "Cadastre identidade visual, moeda padrao e idioma padrao por operacao." %}</p>
+    </div>
+    <a href="{% url 'organizations:create' %}" class="btn btn-primary rounded-4">{% trans "Nova organizacao" %}</a>
   </div>
   <div class="table-responsive">
     <table class="table abat-table">
-      <thead><tr><th>Nome</th><th>Documento</th><th>E-mail</th><th>Status</th><th></th></tr></thead>
+      <thead>
+        <tr>
+          <th>{% trans "Nome" %}</th>
+          <th>{% trans "Documento" %}</th>
+          <th>{% trans "Moeda" %}</th>
+          <th>{% trans "Idioma" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody>
         {% for org in organizations %}
           <tr>
             <td>{{ org.name }}</td>
             <td>{{ org.document_number|default:"-" }}</td>
-            <td>{{ org.contact_email|default:"-" }}</td>
-            <td>{% if org.is_active %}<span class="pill-soft">Ativa</span>{% else %}Inativa{% endif %}</td>
+            <td>{{ org.get_default_currency_display }}</td>
+            <td>{{ org.get_default_language_display }}</td>
+            <td>{% if org.is_active %}<span class="status-pill success">{% trans "Ativa" %}</span>{% else %}<span class="status-pill secondary">{% trans "Inativa" %}</span>{% endif %}</td>
             <td class="text-end"><a href="{% url 'organizations:update' org.pk %}" class="btn btn-sm btn-outline-secondary rounded-4"><i class="bi bi-pencil"></i></a></td>
           </tr>
         {% empty %}
-          <tr><td colspan="5">Nenhuma organização cadastrada.</td></tr>
+          <tr><td colspan="6">{% trans "Nenhuma organizacao cadastrada." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>

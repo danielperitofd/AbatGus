@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}{{ page_title }} | AbatGus{% endblock %}
 {% block content %}
 <section class="content-card">
@@ -12,15 +13,27 @@
     {% csrf_token %}
     {% for field in form %}
       <div class="col-md-6">
-        <label class="form-label">{{ field.label }}</label>
-        {{ field }}
-        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% if field.field.widget.input_type == "checkbox" %}
+          <div class="toggle-field">
+            <div>
+              <label class="form-label mb-1">{{ field.label }}</label>
+              <div class="form-text mt-0">{% if field.value %}{% trans "Ativo" %}{% else %}{% trans "Inativo" %}{% endif %}{% if field.help_text %} · {{ field.help_text }}{% endif %}</div>
+            </div>
+            <div class="form-check form-switch m-0">
+              {{ field }}
+            </div>
+          </div>
+        {% else %}
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% endif %}
         {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>{% endif %}
       </div>
     {% endfor %}
     <div class="col-12 d-flex gap-2 justify-content-end">
-      <a href="javascript:history.back()" class="btn btn-outline-secondary rounded-4 px-4">Cancelar</a>
-      <button class="btn btn-primary rounded-4 px-4" type="submit">Salvar</button>
+      <a href="javascript:history.back()" class="btn btn-outline-secondary rounded-4 px-4">{% trans "Cancelar" %}</a>
+      <button class="btn btn-primary rounded-4 px-4" type="submit">{% trans "Salvar" %}</button>
     </div>
   </form>
 </section>
@@ -28,14 +41,22 @@
 
 {% block scripts %}
 <script>
-  const formatBrazilianDecimal = (value) => {
+  const currencyConfig = {
+    BRL: { symbol: "R$", locale: "pt-BR" },
+    USD: { symbol: "US$", locale: "en-US" },
+    EUR: { symbol: "EUR", locale: "pt-BR" }
+  };
+
+  const formatCurrencyByContext = (value) => {
     const numericValue = Number(String(value).replace(",", "."));
     if (Number.isNaN(numericValue)) return value;
-    const formatted = numericValue.toLocaleString("pt-BR", {
+    const currencyCode = document.body.dataset.currencyCode || "BRL";
+    const config = currencyConfig[currencyCode] || currencyConfig.BRL;
+    const formatted = numericValue.toLocaleString(config.locale, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
-    return `R$ ${formatted}`;
+    return `${config.symbol} ${formatted}`;
   };
 
   document.querySelectorAll("select[data-autofill-target]").forEach((select) => {
@@ -48,7 +69,7 @@
       const defaultPrice = selectedOption.dataset.defaultPrice;
       if (!defaultPrice) return;
       if (!target.value || target.dataset.autofilled === "true") {
-        target.value = formatBrazilianDecimal(defaultPrice);
+        target.value = formatCurrencyByContext(defaultPrice);
         target.dataset.autofilled = "true";
       }
     };
