@@ -366,6 +366,11 @@ class WeeklyIncomeEntryListView(OperationListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         entries = context["entries"]
+        context["status_cards"] = [
+            {"color": "success", "title": "Verde", "count": context["status_summary"]["success"], "description": "Itens acima da base"},
+            {"color": "warning", "title": "Amarelo", "count": context["status_summary"]["warning"], "description": "Itens perto da base"},
+            {"color": "danger", "title": "Vermelho", "count": context["status_summary"]["danger"], "description": "Itens abaixo da base"},
+        ]
         context["summary_cards"] = [
             {"label": "Faturamento lancado", "value": format_currency(sum(entry.calculated_total for entry in entries))},
             {"label": "Quantidade total", "value": sum(entry.quantity for entry in entries)},
@@ -503,6 +508,9 @@ class MeatProductionEntryListView(OperationListView):
             float((payload["avg_sum"] / payload["count"]).quantize(Decimal("0.01"))) if payload["count"] else 0
             for payload in grouped.values()
         ]
+        revenue_values = [float(payload["revenue"]) for payload in grouped.values()]
+        weight_values = [float(payload["weight"]) for payload in grouped.values()]
+        donation_values = [float(payload["donation"]) for payload in grouped.values()]
         context["filters"].update(
             {
                 "performance": self.request.GET.get("performance", ""),
@@ -517,19 +525,37 @@ class MeatProductionEntryListView(OperationListView):
             key=lambda item: (item[1]["avg_sum"] / item[1]["count"]) if item[1]["count"] else Decimal("0"),
             default=(None, None),
         )
+        context["status_cards"] = [
+            {"color": "success", "title": "Verde", "count": context["status_summary"]["success"], "description": "Itens em alta"},
+            {"color": "warning", "title": "Amarelo", "count": context["status_summary"]["warning"], "description": "Itens estaveis"},
+            {"color": "danger", "title": "Vermelho", "count": context["status_summary"]["danger"], "description": "Itens em queda"},
+            {"color": "secondary", "title": "Receita total", "count": format_currency(total_revenue), "description": "Resultado do periodo"},
+        ]
         context["meat_dashboard"] = {
-            "totals": {
-                "revenue": format_currency(total_revenue),
-                "weight": format_measure(total_weight, "kg"),
-                "bovines": total_bovines,
-                "donation": format_measure(total_donation, "kg"),
-            },
             "charts": {
                 "labels": labels,
-                "revenue": [float(payload["revenue"]) for payload in grouped.values()],
-                "weight": [float(payload["weight"]) for payload in grouped.values()],
-                "donation": [float(payload["donation"]) for payload in grouped.values()],
+                "revenue": revenue_values,
+                "weight": weight_values,
+                "donation": donation_values,
                 "average": average_values,
+                "items": {
+                    "revenue": [
+                        {"label": label, "value": format_currency(value), "color": "#8A2E1E"}
+                        for label, value in zip(labels, revenue_values)
+                    ],
+                    "weight": [
+                        {"label": label, "value": format_measure(Decimal(str(value)), "kg"), "color": "#E3B04B"}
+                        for label, value in zip(labels, weight_values)
+                    ],
+                    "average": [
+                        {"label": label, "value": format_measure(Decimal(str(value)), "g"), "color": "#314E52"}
+                        for label, value in zip(labels, average_values)
+                    ],
+                    "donation": [
+                        {"label": label, "value": format_measure(Decimal(str(value)), "kg"), "color": "#C96A4A"}
+                        for label, value in zip(labels, donation_values)
+                    ],
+                },
             },
             "insights": [
                 f"Maior receita: {revenue_leader[0]} ({format_currency(revenue_leader[1]['revenue'])})" if revenue_leader[0] else None,
@@ -793,6 +819,11 @@ class IndemnityRecordListView(OperationListView):
         for entry in entries:
             key = f"{entry.occurred_on.month:02d}/{entry.occurred_on.year}"
             monthly_series[key] += entry.net_amount
+        context["status_cards"] = [
+            {"color": "success", "title": "Verde", "count": context["status_summary"]["success"], "description": "Ocorrências revertidas ou sem prejuízo líquido"},
+            {"color": "warning", "title": "Amarelo", "count": context["status_summary"]["warning"], "description": "Ocorrências com impacto moderado"},
+            {"color": "danger", "title": "Vermelho", "count": context["status_summary"]["danger"], "description": "Ocorrências com impacto alto"},
+        ]
         context["summary_cards"] = [
             {"label": "Perda bruta", "value": format_currency(total_gross)},
             {"label": "Valor recuperado", "value": format_currency(total_recovered)},
@@ -818,6 +849,11 @@ class IndemnityRecordCreateView(OrganizationScopedMixin, OrganizationManagerRequ
     template_name = "shared/form_page.html"
     success_url = reverse_lazy("operations:indemnity-list")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["organization"] = self.get_organization()
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["page_title"] = "Nova indenização"
@@ -833,6 +869,11 @@ class IndemnityRecordUpdateView(OperationUpdateView):
     model = IndemnityRecord
     form_class = IndemnityRecordForm
     success_url_name = "operations:indemnity-list"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["organization"] = self.object.organization
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

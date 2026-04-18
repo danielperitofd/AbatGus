@@ -232,3 +232,33 @@
   - anual
 - O filtro passou a afetar os graficos principais e os resumos operacionais do dashboard.
 - O comparativo mensal de `Receita por competencia` agora considera fevereiro e marco para `Fontes de renda`, incluindo fevereiro com `R$ 277.000,00`.
+
+## 2026-04-17 - experiencia de indenizacoes e admin tools
+
+### Formulario de indenizacoes
+- Campo `Ocorrencia` passou a abrir com a data atual por padrao.
+- Campos `Valor de saida` e `Reversao` passaram a usar mascara monetaria com simbolo de moeda na interface.
+- Campos `Produto`, `Dono`, `Responsavel` e `Motivo` passaram a ser alimentados pelo banco em dropdowns reutilizaveis.
+
+### Base reutilizavel para dropdowns
+- Criado o modelo `IndemnityLookupValue` para armazenar valores base de:
+  - produto
+  - dono
+  - responsavel
+  - motivo
+- A importacao e o salvamento de indenizacoes agora retroalimentam esse catalogo automaticamente.
+
+### Admin Tools para dados de teste
+- Criada a tela `Dados de teste` em `Admin Tools`.
+- Inclusao de acoes para:
+  - popular ate 10 valores/registros de teste por tela
+  - excluir dados de teste por tela
+  - popular tudo
+  - excluir tudo
+- A operacao respeita a organizacao ativa selecionada no topo do sistema.
+
+### Listagem de indenizacoes mais clara
+- A tela de `Indenizacoes` passou a explicar melhor a diferenca entre:
+  - leitura gerencial
+  - semaforo de impacto
+- Os cards de status tambem ganharam descricoes mais objetivas.

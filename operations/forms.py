@@ -6,6 +6,7 @@ from django.db.models import Avg
 
 from .models import (
     IncomeItem,
+    IndemnityLookupValue,
     IndemnityRecord,
     MeatCategory,
     MeatProductionEntry,
@@ -13,6 +14,7 @@ from .models import (
     ResidueCollection,
     WeeklyIncomeEntry,
 )
+from .services import sync_indemnity_lookup_values
 
 
 def parse_decimal_input(value):
@@ -266,6 +268,63 @@ class ResidueCollectionForm(BootstrapModelForm):
 
 
 class IndemnityRecordForm(BootstrapModelForm):
+    product = forms.ChoiceField(label="Produto")
+    owner_name = forms.ChoiceField(label="Dono")
+    responsible_name = forms.ChoiceField(label="Responsável", required=False)
+    reason = forms.ChoiceField(label="Motivo")
+    outgoing_amount = forms.CharField(label="Valor de saída")
+    reversal_amount = forms.CharField(label="Reversão")
+
+    def __init__(self, *args, organization=None, **kwargs):
+        self.organization = organization
+        super().__init__(*args, **kwargs)
+        default_occurred_on = self.initial.get("occurred_on") or getattr(self.instance, "occurred_on", None) or date.today()
+        self.initial["occurred_on"] = default_occurred_on
+        self.fields["occurred_on"].initial = default_occurred_on
+        self.fields["product"].widget = forms.Select(attrs={"class": "form-select"})
+        self.fields["owner_name"].widget = forms.Select(attrs={"class": "form-select"})
+        self.fields["responsible_name"].widget = forms.Select(attrs={"class": "form-select"})
+        self.fields["reason"].widget = forms.Select(attrs={"class": "form-select"})
+        for field_name in ["outgoing_amount", "reversal_amount"]:
+            self.fields[field_name].widget = forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "inputmode": "decimal",
+                    "data-money-mask": "true",
+                }
+            )
+        self._configure_lookup_choices("product", IndemnityLookupValue.FieldTypes.PRODUCT, include_blank=False)
+        self._configure_lookup_choices("owner_name", IndemnityLookupValue.FieldTypes.OWNER, include_blank=False)
+        self._configure_lookup_choices("responsible_name", IndemnityLookupValue.FieldTypes.RESPONSIBLE)
+        self._configure_lookup_choices("reason", IndemnityLookupValue.FieldTypes.REASON, include_blank=False)
+        if self.instance and self.instance.pk:
+            self.initial["outgoing_amount"] = f"R$ {self.instance.outgoing_amount:.2f}".replace(".", ",")
+            self.initial["reversal_amount"] = f"R$ {self.instance.reversal_amount:.2f}".replace(".", ",")
+
+    def _configure_lookup_choices(self, field_name, field_type, include_blank=True):
+        current_value = str(self.initial.get(field_name) or getattr(self.instance, field_name, "") or "").strip()
+        values = []
+        organization = self.organization
+        lookup_queryset = IndemnityLookupValue.objects.filter(field_type=field_type, is_active=True)
+        record_field = {
+            IndemnityLookupValue.FieldTypes.PRODUCT: "product",
+            IndemnityLookupValue.FieldTypes.OWNER: "owner_name",
+            IndemnityLookupValue.FieldTypes.RESPONSIBLE: "responsible_name",
+            IndemnityLookupValue.FieldTypes.REASON: "reason",
+        }[field_type]
+        record_queryset = IndemnityRecord.objects.exclude(**{record_field: ""})
+        if organization:
+            lookup_queryset = lookup_queryset.filter(organization=organization)
+            record_queryset = record_queryset.filter(organization=organization)
+        values.extend(lookup_queryset.values_list("value", flat=True))
+        values.extend(record_queryset.values_list(record_field, flat=True).distinct())
+        if current_value:
+            values.append(current_value)
+        unique_values = sorted({str(value).strip() for value in values if str(value).strip()})
+        choices = [("", "Selecione uma opção")] if include_blank else []
+        choices.extend((value, value) for value in unique_values)
+        self.fields[field_name].choices = choices
+
     class Meta:
         model = IndemnityRecord
         fields = [
@@ -279,4 +338,25 @@ class IndemnityRecordForm(BootstrapModelForm):
             "reason",
             "notes",
         ]
-        widgets = {"occurred_on": forms.DateInput(attrs={"type": "date"})}
+        widgets = {"occurred_on": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"})}
+
+    def clean_outgoing_amount(self):
+        value = str(self.cleaned_data["outgoing_amount"]).replace("R$", "").strip()
+        return value.replace(".", "").replace(",", ".")
+
+    def clean_reversal_amount(self):
+        value = str(self.cleaned_data["reversal_amount"]).replace("R$", "").strip()
+        return value.replace(".", "").replace(",", ".")
+
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+        organization = instance.organization if instance.organization_id else self.organization
+        if organization:
+            sync_indemnity_lookup_values(
+                organization,
+                product=instance.product,
+                owner_name=instance.owner_name,
+                responsible_name=instance.responsible_name,
+                reason=instance.reason,
+            )
+        return instance

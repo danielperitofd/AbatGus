@@ -86,5 +86,32 @@
       field.select();
     });
   });
+
+  const parseMoneyValue = (value) => {
+    const normalized = String(value || "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
+    const numericValue = Number(normalized);
+    return Number.isNaN(numericValue) ? null : numericValue;
+  };
+
+  document.querySelectorAll("[data-money-mask='true']").forEach((field) => {
+    const applyMask = () => {
+      const numericValue = parseMoneyValue(field.value);
+      if (numericValue === null) {
+        return;
+      }
+      field.value = formatCurrencyByContext(numericValue);
+    };
+
+    field.addEventListener("blur", applyMask);
+    field.addEventListener("focus", () => {
+      if (field.value) {
+        field.select();
+      }
+    });
+
+    if (field.value) {
+      applyMask();
+    }
+  });
 </script>
 {% endblock %}

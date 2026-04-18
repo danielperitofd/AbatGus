@@ -8,7 +8,10 @@
       <h2>{% trans "Organizacoes" %}</h2>
       <p>{% trans "Cadastre identidade visual, moeda padrao e idioma padrao por operacao." %}</p>
     </div>
-    <a href="{% url 'organizations:create' %}" class="btn btn-primary rounded-4">{% trans "Nova organizacao" %}</a>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'organizations:test-data' %}" class="btn btn-outline-secondary rounded-4">{% trans "Dados de teste" %}</a>
+      <a href="{% url 'organizations:create' %}" class="btn btn-primary rounded-4">{% trans "Nova organizacao" %}</a>
+    </div>
   </div>
   <div class="table-responsive">
     <table class="table abat-table">

@@ -46,6 +46,8 @@ def default_breadcrumbs(request):
     elif namespace == "organizations":
         crumbs.append({"label": _("Admin Tools"), "url": None})
         crumbs.append({"label": _("Organizações"), "url": _safe_reverse("organizations:list")})
+        if url_name == "test-data":
+            crumbs.append({"label": _("Dados de teste"), "url": None})
     elif namespace == "reports":
         crumbs.append({"label": _("Relatórios"), "url": _safe_reverse("reports:hub")})
 

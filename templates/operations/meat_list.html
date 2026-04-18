@@ -16,56 +16,96 @@
     </div>
   </div>
 
-  <div class="status-grid mb-4">
-    <div class="status-card success"><span>{% trans "Verde" %}</span><strong>{{ status_summary.success }}</strong></div>
-    <div class="status-card warning"><span>{% trans "Amarelo" %}</span><strong>{{ status_summary.warning }}</strong></div>
-    <div class="status-card danger"><span>{% trans "Vermelho" %}</span><strong>{{ status_summary.danger }}</strong></div>
+  <div class="row g-3 mb-4">
+    {% for card in status_cards %}
+      <div class="col-md-6 col-xl-3">
+        <div class="status-card {{ card.color }}">
+          <span>{{ card.title }}</span>
+          <strong>{{ card.count }}</strong>
+          <div class="metric-foot">{{ card.description }}</div>
+        </div>
+      </div>
+    {% endfor %}
   </div>
 
   {% if meat_dashboard %}
-    <section class="content-card mb-4">
+    <section class="content-card mb-4 meat-dashboard-shell">
       <div class="section-heading mb-3">
         <div>
           <h2>{% trans "Dashboard do periodo" %}</h2>
-          <p>{% trans "Comparativo visual entre Cabeca, File, Limpeza, Pano e demais categorias carregadas." %}</p>
+          <p>{% trans "Comparativo visual entre as categorias de carne do periodo filtrado." %}</p>
         </div>
       </div>
 
       <div class="row g-3 mb-4">
-        <div class="col-xl-3">
-          <div class="info-card h-100">
-            <div class="metric-label">{% trans "Receita total" %}</div>
-            <div class="metric-value">{{ meat_dashboard.totals.revenue }}</div>
-            <div class="metric-foot">{% trans "Peso total" %}: {{ meat_dashboard.totals.weight }}</div>
-            <div class="metric-foot">{% trans "Bovinos abatidos" %}: {{ meat_dashboard.totals.bovines }}</div>
-            <div class="metric-foot">{% trans "Doacao" %}: {{ meat_dashboard.totals.donation }}</div>
+        <div class="col-12">
+          <div class="metric-card h-100 compact-chart-card">
+            <div class="metric-label">{% trans "Receita por categoria" %}</div>
+            <div class="chart-canvas-wrap compact meat-chart mt-2">
+              <canvas id="meatRevenueChart" height="128"></canvas>
+            </div>
+            <div class="chart-legend-list chart-legend-grid mt-3">
+              {% for item in meat_dashboard.charts.items.revenue %}
+                <div class="chart-legend-row">
+                  <span class="chart-dot" style="background: {{ item.color }}"></span>
+                  <span class="chart-label">{{ item.label }}</span>
+                  <strong class="chart-value">{{ item.value }}</strong>
+                </div>
+              {% endfor %}
+            </div>
           </div>
         </div>
-        <div class="col-xl-9">
-          <div class="row g-3 h-100">
-            <div class="col-md-6">
-              <div class="metric-card h-100">
-                <div class="metric-label">{% trans "Receita por categoria" %}</div>
-                <canvas id="meatRevenueChart" height="180"></canvas>
-              </div>
+
+        <div class="col-12">
+          <div class="metric-card h-100 compact-chart-card">
+            <div class="metric-label">{% trans "Peso por categoria" %}</div>
+            <div class="chart-canvas-wrap compact meat-chart mt-2">
+              <canvas id="meatWeightChart" height="128"></canvas>
             </div>
-            <div class="col-md-6">
-              <div class="metric-card h-100">
-                <div class="metric-label">{% trans "Peso por categoria" %}</div>
-                <canvas id="meatWeightChart" height="180"></canvas>
-              </div>
+            <div class="chart-legend-list chart-legend-grid mt-3">
+              {% for item in meat_dashboard.charts.items.weight %}
+                <div class="chart-legend-row">
+                  <span class="chart-dot" style="background: {{ item.color }}"></span>
+                  <span class="chart-label">{{ item.label }}</span>
+                  <strong class="chart-value">{{ item.value }}</strong>
+                </div>
+              {% endfor %}
             </div>
-            <div class="col-md-6">
-              <div class="metric-card h-100">
-                <div class="metric-label">{% trans "Doacao por categoria" %}</div>
-                <canvas id="meatDonationChart" height="180"></canvas>
-              </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="metric-card h-100 compact-chart-card">
+            <div class="metric-label">{% trans "Media por cabeca" %}</div>
+            <div class="chart-canvas-wrap compact meat-chart mt-2">
+              <canvas id="meatAverageChart" height="124"></canvas>
             </div>
-            <div class="col-md-6">
-              <div class="metric-card h-100">
-                <div class="metric-label">{% trans "Media por cabeca" %}</div>
-                <canvas id="meatAverageChart" height="180"></canvas>
-              </div>
+            <div class="chart-legend-list mt-3">
+              {% for item in meat_dashboard.charts.items.average %}
+                <div class="chart-legend-row">
+                  <span class="chart-dot" style="background: {{ item.color }}"></span>
+                  <span class="chart-label">{{ item.label }}</span>
+                  <strong class="chart-value">{{ item.value }}</strong>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="metric-card h-100 compact-chart-card">
+            <div class="metric-label">{% trans "Doacao por categoria" %}</div>
+            <div class="chart-canvas-wrap compact meat-chart mt-2">
+              <canvas id="meatDonationChart" height="124"></canvas>
+            </div>
+            <div class="chart-legend-list mt-3">
+              {% for item in meat_dashboard.charts.items.donation %}
+                <div class="chart-legend-row">
+                  <span class="chart-dot" style="background: {{ item.color }}"></span>
+                  <span class="chart-label">{{ item.label }}</span>
+                  <strong class="chart-value">{{ item.value }}</strong>
+                </div>
+              {% endfor %}
             </div>
           </div>
         </div>
@@ -178,21 +218,46 @@
     const palette = ["#8A2E1E", "#E3B04B", "#314E52", "#7C8C3B", "#C96A4A", "#11212D", "#D9863B"];
 
     new Chart(document.getElementById("meatRevenueChart"), {
-      type: "bar",
+      type: "line",
       data: {
         labels: data.labels,
-        datasets: [{ data: data.revenue, backgroundColor: palette, borderRadius: 12 }]
+        datasets: [{
+          data: data.revenue,
+          borderColor: "#8A2E1E",
+          backgroundColor: "rgba(138, 46, 30, 0.12)",
+          fill: true,
+          tension: 0.35,
+          pointRadius: 4,
+          pointBackgroundColor: "#8A2E1E"
+        }]
       },
       options: { responsive: true, plugins: { legend: { display: false } } }
     });
 
     new Chart(document.getElementById("meatWeightChart"), {
-      type: "doughnut",
+      type: "bar",
       data: {
         labels: data.labels,
-        datasets: [{ data: data.weight, backgroundColor: palette }]
+        datasets: [{ data: data.weight, backgroundColor: "#E3B04B", borderRadius: 12 }]
       },
-      options: { responsive: true }
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById("meatAverageChart"), {
+      type: "line",
+      data: {
+        labels: data.labels,
+        datasets: [{
+          data: data.average,
+          borderColor: "#314E52",
+          backgroundColor: "rgba(49, 78, 82, 0.10)",
+          fill: true,
+          tension: 0.35,
+          pointRadius: 4,
+          pointBackgroundColor: "#314E52"
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
     });
 
     new Chart(document.getElementById("meatDonationChart"), {
@@ -200,21 +265,6 @@
       data: {
         labels: data.labels,
         datasets: [{ data: data.donation, backgroundColor: "#C96A4A", borderRadius: 12 }]
-      },
-      options: { responsive: true, plugins: { legend: { display: false } } }
-    });
-
-    new Chart(document.getElementById("meatAverageChart"), {
-      type: "radar",
-      data: {
-        labels: data.labels,
-        datasets: [{
-          label: "Media por cabeca (g)",
-          data: data.average,
-          backgroundColor: "rgba(49, 78, 82, 0.12)",
-          borderColor: "#314E52",
-          pointBackgroundColor: "#314E52"
-        }]
       },
       options: { responsive: true, plugins: { legend: { display: false } } }
     });

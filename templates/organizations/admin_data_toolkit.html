@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }} | AbatGus{% endblock %}
+{% block content %}
+<section class="content-card">
+  <div class="section-heading">
+    <div>
+      <h2>{{ page_title }}</h2>
+      <p>{{ page_description }}</p>
+    </div>
+  </div>
+
+  <div class="info-card mb-4">
+    <div class="metric-label">{% trans "Organização alvo" %}</div>
+    <div class="metric-value fs-4">{{ target_organization.name|default:"Nenhuma organização ativa" }}</div>
+    <div class="metric-foot">{% trans "Use o seletor de organização no topo antes de popular ou limpar dados." %}</div>
+  </div>
+
+  <div class="d-flex gap-2 flex-wrap mb-4">
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="populate">
+      <input type="hidden" name="scope" value="all">
+      <button class="btn btn-primary rounded-4" type="submit">{% trans "Popular tudo" %}</button>
+    </form>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="clear">
+      <input type="hidden" name="scope" value="all">
+      <button class="btn btn-outline-danger rounded-4" type="submit">{% trans "Excluir tudo" %}</button>
+    </form>
+  </div>
+
+  <div class="row g-3">
+    {% for module in module_cards %}
+      <div class="col-md-6 col-xl-3">
+        <div class="access-card enabled h-100 admin-toolkit-card">
+          <div class="admin-toolkit-card__body">
+            <div class="metric-label">{{ module.title }}</div>
+            <div class="metric-value fs-3">{{ module.count }}</div>
+            <div class="metric-foot">{{ module.description }}</div>
+          </div>
+          <div class="admin-toolkit-card__actions">
+            <form method="post" class="admin-toolkit-card__form">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="populate">
+              <input type="hidden" name="scope" value="{{ module.key }}">
+              <button class="btn btn-sm btn-primary rounded-4 w-100" type="submit">{% trans "Popular até 10" %}</button>
+            </form>
+            <form method="post" class="admin-toolkit-card__form">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="clear">
+              <input type="hidden" name="scope" value="{{ module.key }}">
+              <button class="btn btn-sm btn-outline-danger rounded-4 w-100" type="submit">{% trans "Excluir desta" %}</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <div class="danger-box">{% trans "Nenhuma organização disponível para administrar dados de teste." %}</div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

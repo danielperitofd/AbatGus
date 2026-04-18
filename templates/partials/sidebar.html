@@ -31,5 +31,6 @@
   {% if can_see_admin_tools %}
     <div class="nav-group-title">Admin Tools</div>
     <a class="side-link" href="{% url 'organizations:list' %}"><i class="bi bi-diagram-3"></i> Organizacoes</a>
+    <a class="side-link" href="{% url 'organizations:test-data' %}"><i class="bi bi-database-fill-gear"></i> Dados de teste</a>
   {% endif %}
 </aside>

@@ -388,6 +388,49 @@ input[type="file"] {
   min-height: 300px;
 }
 
+.compact-chart-card {
+  padding: 1rem 1rem 0.95rem;
+}
+
+.meat-dashboard-shell .section-heading {
+  margin-bottom: 0.8rem;
+}
+
+.meat-dashboard-shell .metric-card,
+.meat-dashboard-shell .info-card {
+  border-radius: 22px;
+}
+
+.meat-dashboard-shell .chart-canvas-wrap.compact.meat-chart {
+  min-height: 128px;
+}
+
+.meat-dashboard-shell .chart-legend-list {
+  gap: 0.45rem;
+}
+
+.meat-dashboard-shell .chart-legend-grid {
+  column-gap: 0.85rem;
+}
+
+.meat-dashboard-shell .chart-legend-row {
+  gap: 0.55rem;
+  font-size: 0.8rem;
+}
+
+.meat-dashboard-shell .chart-label,
+.meat-dashboard-shell .metric-foot {
+  line-height: 1.25;
+}
+
+.meat-dashboard-shell .chart-value {
+  font-size: 0.8rem;
+}
+
+.meat-dashboard-shell .info-card {
+  padding: 0.95rem 1rem;
+}
+
 .chart-legend-list,
 .chart-legend-stack {
   display: grid;
@@ -478,6 +521,29 @@ input[type="file"] {
   align-self: center;
 }
 
+.admin-toolkit-card {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 1.2rem;
+}
+
+.admin-toolkit-card__body {
+  min-height: 112px;
+}
+
+.admin-toolkit-card__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: auto;
+}
+
+.admin-toolkit-card__form {
+  margin: 0;
+}
+
 .form-switch .form-check-input {
   width: 3rem;
   height: 1.55rem;
@@ -510,7 +576,15 @@ input[type="file"] {
     min-height: 230px;
   }
 
+  .meat-dashboard-shell .chart-canvas-wrap.compact.meat-chart {
+    min-height: 168px;
+  }
+
   .chart-legend-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-toolkit-card__actions {
     grid-template-columns: 1fr;
   }
 }

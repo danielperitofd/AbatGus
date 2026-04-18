@@ -205,6 +205,27 @@ class IndemnityRecord(OrganizationOwnedModel):
         return f"{self.product} - {self.occurred_on:%d/%m/%Y}"
 
 
+class IndemnityLookupValue(OrganizationOwnedModel):
+    class FieldTypes(models.TextChoices):
+        PRODUCT = "product", "Produto"
+        OWNER = "owner", "Dono"
+        RESPONSIBLE = "responsible", "Responsável"
+        REASON = "reason", "Motivo"
+
+    field_type = models.CharField("tipo de campo", max_length=20, choices=FieldTypes.choices)
+    value = models.CharField("valor", max_length=160)
+    is_active = models.BooleanField("ativo", default=True)
+
+    class Meta:
+        verbose_name = "valor base de indenização"
+        verbose_name_plural = "valores base de indenização"
+        unique_together = ("organization", "field_type", "value")
+        ordering = ["field_type", "value"]
+
+    def __str__(self):
+        return f"{self.get_field_type_display()}: {self.value}"
+
+
 class AuditLog(models.Model):
     organization = models.ForeignKey(
         "organizations.Organization",

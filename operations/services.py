@@ -16,6 +16,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 
 from .models import (
     IncomeItem,
+    IndemnityLookupValue,
     IndemnityRecord,
     MeatCategory,
     MeatProductionEntry,
@@ -161,6 +162,25 @@ def attach_indemnity_status(entries):
     return entries
 
 
+def sync_indemnity_lookup_values(organization, *, product="", owner_name="", responsible_name="", reason=""):
+    mapping = {
+        IndemnityLookupValue.FieldTypes.PRODUCT: product,
+        IndemnityLookupValue.FieldTypes.OWNER: owner_name,
+        IndemnityLookupValue.FieldTypes.RESPONSIBLE: responsible_name,
+        IndemnityLookupValue.FieldTypes.REASON: reason,
+    }
+    for field_type, raw_value in mapping.items():
+        value = str(raw_value or "").strip()
+        if not value:
+            continue
+        IndemnityLookupValue.objects.get_or_create(
+            organization=organization,
+            field_type=field_type,
+            value=value,
+            defaults={"is_active": True},
+        )
+
+
 def summarize_semaphores(entries):
     summary = {"success": 0, "warning": 0, "danger": 0, "secondary": 0}
     for entry in entries:
@@ -277,7 +297,7 @@ def import_indemnity_rows(organization, uploaded_file):
     errors = []
     for index, row in enumerate(rows, start=2):
         try:
-            IndemnityRecord.objects.create(
+            record = IndemnityRecord.objects.create(
                 organization=organization,
                 occurred_on=parse_date(row.get("data") or row.get("ocorrencia") or row.get("occurred_on")),
                 product=str(row.get("produto") or row.get("product") or "").strip(),
@@ -288,6 +308,13 @@ def import_indemnity_rows(organization, uploaded_file):
                 responsible_name=str(row.get("responsavel") or row.get("responsável") or row.get("responsible_name") or "").strip(),
                 reason=str(row.get("motivo") or row.get("reason") or "").strip(),
                 notes=str(row.get("observacoes") or row.get("observações") or row.get("notes") or "").strip(),
+            )
+            sync_indemnity_lookup_values(
+                organization,
+                product=record.product,
+                owner_name=record.owner_name,
+                responsible_name=record.responsible_name,
+                reason=record.reason,
             )
             created_count += 1
         except Exception as exc:

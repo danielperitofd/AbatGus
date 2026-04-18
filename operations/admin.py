@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AuditLog, IncomeItem, IndemnityRecord, MeatCategory, MeatProductionEntry, ResidueCategory, ResidueCollection, WeeklyIncomeEntry
+from .models import AuditLog, IncomeItem, IndemnityLookupValue, IndemnityRecord, MeatCategory, MeatProductionEntry, ResidueCategory, ResidueCollection, WeeklyIncomeEntry
 
 
 admin.site.register(
@@ -12,6 +12,7 @@ admin.site.register(
         ResidueCategory,
         ResidueCollection,
         IndemnityRecord,
+        IndemnityLookupValue,
         AuditLog,
     ]
 )
