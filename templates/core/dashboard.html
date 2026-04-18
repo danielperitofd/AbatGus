@@ -11,10 +11,10 @@
     <span class="pill-soft"><i class="bi bi-activity"></i> {% trans "Semaforo operacional ativo" %}</span>
   </div>
   <div class="row g-3">
-    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">{% trans "Fontes de renda" %}</div><div class="metric-value">{{ income_total }}</div><div class="metric-foot">{% trans "Soma das quantidades lancadas" %}</div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">{% trans "Peso de carnes" %}</div><div class="metric-value">{{ meat_total|kg }}</div><div class="metric-foot">{% trans "Kg totais controlados" %}</div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">{% trans "Doacoes" %}</div><div class="metric-value">{{ donation_total|kg }}</div><div class="metric-foot">{% trans "Kg destinados a doacao" %}</div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="metric-card"><div class="metric-label">{% trans "Indenizacoes" %}</div><div class="metric-value">{{ indemnity_total|brl }}</div><div class="metric-foot">{% trans "Saidas registradas" %}</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card metric-card-highlight"><div class="metric-label">{% trans "Fontes de renda" %}</div><div class="metric-value">{{ income_total }}</div><div class="metric-foot">{% trans "Soma das quantidades lancadas" %}</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card metric-card-highlight"><div class="metric-label">{% trans "Peso de carnes" %}</div><div class="metric-value">{{ meat_total|kg }}</div><div class="metric-foot">{% trans "Kg totais controlados" %}</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card metric-card-highlight"><div class="metric-label">{% trans "Doacoes" %}</div><div class="metric-value">{{ donation_total|kg }}</div><div class="metric-foot">{% trans "Kg destinados a doacao" %}</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="metric-card metric-card-highlight"><div class="metric-label">{% trans "Indenizacoes" %}</div><div class="metric-value">{{ indemnity_total|brl }}</div><div class="metric-foot">{% trans "Saidas registradas" %}</div></div></div>
   </div>
 </section>
 
@@ -22,14 +22,11 @@
   <form method="get" class="row g-3 align-items-end">
     <div class="col-md-4 col-xl-3">
       <label class="form-label">{% trans "Janela analitica" %}</label>
-      <select name="range" class="form-select">
+      <select name="range" class="form-select" onchange="this.form.submit()">
         {% for item in dashboard_ranges %}
           <option value="{{ item.value }}" {% if selected_dashboard_range == item.value %}selected{% endif %}>{{ item.label }}</option>
         {% endfor %}
       </select>
-    </div>
-    <div class="col-md-3 col-xl-2">
-      <button class="btn btn-outline-secondary rounded-4 w-100">{% trans "Aplicar" %}</button>
     </div>
   </form>
 </section>

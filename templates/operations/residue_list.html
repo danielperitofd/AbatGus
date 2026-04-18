@@ -17,16 +17,16 @@
   </div>
 
   <div class="status-grid mb-4">
-    <div class="status-card success"><span>{% trans "Verde" %}</span><strong>{{ status_summary.success }}</strong></div>
-    <div class="status-card warning"><span>{% trans "Amarelo" %}</span><strong>{{ status_summary.warning }}</strong></div>
-    <div class="status-card danger"><span>{% trans "Vermelho" %}</span><strong>{{ status_summary.danger }}</strong></div>
+    <div class="status-card status-card-highlight success"><span>{% trans "Verde" %}</span><strong>{{ status_summary.success }}</strong></div>
+    <div class="status-card status-card-highlight warning"><span>{% trans "Amarelo" %}</span><strong>{{ status_summary.warning }}</strong></div>
+    <div class="status-card status-card-highlight danger"><span>{% trans "Vermelho" %}</span><strong>{{ status_summary.danger }}</strong></div>
   </div>
 
   {% if summary_cards %}
     <div class="row g-3 mb-4">
       {% for card in summary_cards %}
         <div class="col-md-6">
-          <div class="metric-card">
+          <div class="metric-card metric-card-highlight">
             <div class="metric-label">{{ card.label }}</div>
             <div class="metric-value">{{ card.value }}</div>
           </div>

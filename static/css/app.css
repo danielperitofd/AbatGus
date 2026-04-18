@@ -23,8 +23,6 @@ body {
   background: linear-gradient(180deg, #1d252d 0%, #11171d 100%);
   padding: 1.4rem 1rem;
   color: #fff;
-  position: sticky;
-  top: 0;
 }
 
 .brand-block,
@@ -186,6 +184,46 @@ body {
   height: 100%;
 }
 
+.metric-card-highlight {
+  position: relative;
+  overflow: hidden;
+  padding: 1.35rem 1.15rem;
+  border: 1px solid rgba(227, 176, 75, 0.2);
+  box-shadow: 0 16px 36px rgba(82, 48, 28, 0.08);
+}
+
+.metric-card-highlight::after {
+  content: "";
+  position: absolute;
+  right: -22px;
+  bottom: -28px;
+  width: 88px;
+  height: 88px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(227, 176, 75, 0.2), rgba(138, 46, 30, 0.08));
+}
+
+.metric-card-highlight .metric-label,
+.metric-card-highlight .metric-value,
+.metric-card-highlight .metric-foot {
+  position: relative;
+  z-index: 1;
+}
+
+.metric-card-highlight .metric-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.metric-card-highlight .metric-value {
+  margin-top: 0.25rem;
+}
+
+.metric-card-highlight .metric-value:not(.fs-5) {
+  font-size: clamp(1.85rem, 2vw, 2.2rem);
+}
+
 .metric-label {
   color: var(--muted);
   font-size: 0.85rem;
@@ -294,6 +332,25 @@ input[type="file"] {
   background: #fff;
 }
 
+.status-card-highlight {
+  position: relative;
+  overflow: hidden;
+  min-height: 92px;
+  padding: 1rem 1rem 0.95rem;
+  box-shadow: 0 12px 28px rgba(82, 48, 28, 0.06);
+}
+
+.status-card-highlight::after {
+  content: "";
+  position: absolute;
+  right: -20px;
+  top: -20px;
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  opacity: 0.16;
+}
+
 .status-card span {
   display: block;
   color: var(--muted);
@@ -309,13 +366,25 @@ input[type="file"] {
   background: #ecf9f0;
 }
 
+.status-card.success::after {
+  background: #1b8a5a;
+}
+
 .status-card.warning {
   background: #fff6df;
+}
+
+.status-card.warning::after {
+  background: #e3b04b;
 }
 
 .status-card.danger,
 .danger-box {
   background: #fdecec;
+}
+
+.status-card.danger::after {
+  background: #c13c37;
 }
 
 .status-pill {
@@ -402,7 +471,7 @@ input[type="file"] {
 }
 
 .meat-dashboard-shell .chart-canvas-wrap.compact.meat-chart {
-  min-height: 128px;
+  min-height: 144px;
 }
 
 .meat-dashboard-shell .chart-legend-list {
@@ -429,6 +498,87 @@ input[type="file"] {
 
 .meat-dashboard-shell .info-card {
   padding: 0.95rem 1rem;
+}
+
+.meat-insight-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.1rem 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+}
+
+.meat-insight-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -24px -32px auto;
+  width: 90px;
+  height: 90px;
+  border-radius: 999px;
+  opacity: 0.16;
+}
+
+.meat-insight-card__label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.45rem;
+}
+
+.meat-insight-card__highlight {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 0.35rem;
+  color: var(--text);
+}
+
+.meat-insight-card__value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--brand-dark);
+}
+
+.meat-insight-card--brand::after {
+  background: #8a2e1e;
+}
+
+.meat-insight-card--gold::after {
+  background: #e3b04b;
+}
+
+.meat-insight-card--coral::after {
+  background: #c96a4a;
+}
+
+.meat-insight-card--teal::after {
+  background: #314e52;
+}
+
+.mobile-chart-legend {
+  display: none;
+}
+
+.mobile-chart-legend__card {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.mobile-chart-legend__label {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.mobile-chart-legend__value {
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .chart-legend-list,
@@ -480,6 +630,10 @@ input[type="file"] {
 
 .dashboard-analytics {
   margin-bottom: 1.2rem;
+}
+
+.report-hub-card .metric-value {
+  margin-bottom: 0.2rem;
 }
 
 .toggle-field {
@@ -577,11 +731,16 @@ input[type="file"] {
   }
 
   .meat-dashboard-shell .chart-canvas-wrap.compact.meat-chart {
-    min-height: 168px;
+    min-height: 96px;
   }
 
   .chart-legend-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mobile-chart-legend {
+    display: grid;
+    gap: 0.55rem;
   }
 
   .admin-toolkit-card__actions {

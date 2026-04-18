@@ -19,7 +19,7 @@
   <div class="row g-3 mb-4">
     {% for card in status_cards %}
       <div class="col-md-6 col-xl-3">
-        <div class="status-card {{ card.color }}">
+        <div class="status-card status-card-highlight {{ card.color }}">
           <span>{{ card.title }}</span>
           <strong>{{ card.count }}</strong>
           <div class="metric-foot">{{ card.description }}</div>
@@ -42,14 +42,14 @@
           <div class="metric-card h-100 compact-chart-card">
             <div class="metric-label">{% trans "Receita por categoria" %}</div>
             <div class="chart-canvas-wrap compact meat-chart mt-2">
-              <canvas id="meatRevenueChart" height="128"></canvas>
+              <canvas id="meatRevenueChart" height="144"></canvas>
             </div>
-            <div class="chart-legend-list chart-legend-grid mt-3">
+            <div class="mobile-chart-legend mt-3">
               {% for item in meat_dashboard.charts.items.revenue %}
-                <div class="chart-legend-row">
+                <div class="mobile-chart-legend__card">
                   <span class="chart-dot" style="background: {{ item.color }}"></span>
-                  <span class="chart-label">{{ item.label }}</span>
-                  <strong class="chart-value">{{ item.value }}</strong>
+                  <span class="mobile-chart-legend__label">{{ item.label }}</span>
+                  <strong class="mobile-chart-legend__value">{{ item.value }}</strong>
                 </div>
               {% endfor %}
             </div>
@@ -60,14 +60,14 @@
           <div class="metric-card h-100 compact-chart-card">
             <div class="metric-label">{% trans "Peso por categoria" %}</div>
             <div class="chart-canvas-wrap compact meat-chart mt-2">
-              <canvas id="meatWeightChart" height="128"></canvas>
+              <canvas id="meatWeightChart" height="144"></canvas>
             </div>
-            <div class="chart-legend-list chart-legend-grid mt-3">
+            <div class="mobile-chart-legend mt-3">
               {% for item in meat_dashboard.charts.items.weight %}
-                <div class="chart-legend-row">
+                <div class="mobile-chart-legend__card">
                   <span class="chart-dot" style="background: {{ item.color }}"></span>
-                  <span class="chart-label">{{ item.label }}</span>
-                  <strong class="chart-value">{{ item.value }}</strong>
+                  <span class="mobile-chart-legend__label">{{ item.label }}</span>
+                  <strong class="mobile-chart-legend__value">{{ item.value }}</strong>
                 </div>
               {% endfor %}
             </div>
@@ -78,14 +78,14 @@
           <div class="metric-card h-100 compact-chart-card">
             <div class="metric-label">{% trans "Media por cabeca" %}</div>
             <div class="chart-canvas-wrap compact meat-chart mt-2">
-              <canvas id="meatAverageChart" height="124"></canvas>
+              <canvas id="meatAverageChart" height="140"></canvas>
             </div>
-            <div class="chart-legend-list mt-3">
+            <div class="mobile-chart-legend mt-3">
               {% for item in meat_dashboard.charts.items.average %}
-                <div class="chart-legend-row">
+                <div class="mobile-chart-legend__card">
                   <span class="chart-dot" style="background: {{ item.color }}"></span>
-                  <span class="chart-label">{{ item.label }}</span>
-                  <strong class="chart-value">{{ item.value }}</strong>
+                  <span class="mobile-chart-legend__label">{{ item.label }}</span>
+                  <strong class="mobile-chart-legend__value">{{ item.value }}</strong>
                 </div>
               {% endfor %}
             </div>
@@ -96,14 +96,14 @@
           <div class="metric-card h-100 compact-chart-card">
             <div class="metric-label">{% trans "Doacao por categoria" %}</div>
             <div class="chart-canvas-wrap compact meat-chart mt-2">
-              <canvas id="meatDonationChart" height="124"></canvas>
+              <canvas id="meatDonationChart" height="140"></canvas>
             </div>
-            <div class="chart-legend-list mt-3">
+            <div class="mobile-chart-legend mt-3">
               {% for item in meat_dashboard.charts.items.donation %}
-                <div class="chart-legend-row">
+                <div class="mobile-chart-legend__card">
                   <span class="chart-dot" style="background: {{ item.color }}"></span>
-                  <span class="chart-label">{{ item.label }}</span>
-                  <strong class="chart-value">{{ item.value }}</strong>
+                  <span class="mobile-chart-legend__label">{{ item.label }}</span>
+                  <strong class="mobile-chart-legend__value">{{ item.value }}</strong>
                 </div>
               {% endfor %}
             </div>
@@ -115,8 +115,10 @@
         <div class="row g-3">
           {% for insight in meat_dashboard.insights %}
             <div class="col-md-6 col-xl-3">
-              <div class="info-card h-100">
-                <div class="metric-foot mb-0">{{ insight }}</div>
+              <div class="info-card h-100 meat-insight-card meat-insight-card--{{ insight.tone }}">
+                <div class="meat-insight-card__label">{{ insight.label }}</div>
+                <div class="meat-insight-card__highlight">{{ insight.highlight }}</div>
+                <div class="meat-insight-card__value">{{ insight.value }}</div>
               </div>
             </div>
           {% endfor %}
@@ -215,7 +217,86 @@
   const meatDashboardSource = document.getElementById("meat-dashboard-data");
   if (meatDashboardSource) {
     const data = JSON.parse(meatDashboardSource.textContent);
-    const palette = ["#8A2E1E", "#E3B04B", "#314E52", "#7C8C3B", "#C96A4A", "#11212D", "#D9863B"];
+    const isCompactViewport = () => window.innerWidth < 992;
+    const decimalFormatter = (value) => Number(value || 0).toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    const moneyFormatter = (value) => `R$ ${decimalFormatter(value)}`;
+    const kilogramsFormatter = (value) => `${decimalFormatter(value)} kg`;
+    const gramsFormatter = (value) => `${decimalFormatter(value)} g`;
+
+    const chartValuePlugin = {
+      id: "chartValuePlugin",
+      afterDatasetsDraw(chart, _args, pluginOptions) {
+        if (isCompactViewport()) {
+          return;
+        }
+        const { ctx } = chart;
+        const formatter = pluginOptions.formatter || ((value) => value);
+        const textColor = pluginOptions.color || "#1F2933";
+
+        chart.data.datasets.forEach((_dataset, datasetIndex) => {
+          const meta = chart.getDatasetMeta(datasetIndex);
+          if (meta.hidden) return;
+
+          meta.data.forEach((element, index) => {
+            const rawValue = chart.data.datasets[datasetIndex].data[index];
+            if (rawValue === null || rawValue === undefined) return;
+
+            const label = formatter(rawValue);
+            const position = element.tooltipPosition();
+            const x = position.x;
+            const y = chart.config.type === "bar" ? position.y - 6 : position.y - 10;
+
+            ctx.save();
+            ctx.font = "700 10px Manrope, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            const labelWidth = ctx.measureText(label).width + 10;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.90)";
+            ctx.fillRect(x - (labelWidth / 2), y - 12, labelWidth, 16);
+            ctx.fillStyle = textColor;
+            ctx.fillText(label, x, y);
+            ctx.restore();
+          });
+        });
+      }
+    };
+
+    Chart.register(chartValuePlugin);
+
+    const canvasHeights = isCompactViewport()
+      ? { revenue: 96, weight: 96, average: 94, donation: 94 }
+      : { revenue: 144, weight: 144, average: 140, donation: 140 };
+
+    document.getElementById("meatRevenueChart").height = canvasHeights.revenue;
+    document.getElementById("meatWeightChart").height = canvasHeights.weight;
+    document.getElementById("meatAverageChart").height = canvasHeights.average;
+    document.getElementById("meatDonationChart").height = canvasHeights.donation;
+
+    const sharedOptions = (formatter, color = "#1F2933") => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 18, right: 6, left: 6 } },
+      plugins: {
+        legend: { display: false },
+        chartValuePlugin: {
+          formatter,
+          color
+        }
+      },
+      scales: {
+        y: {
+          ticks: { color: "#6B7280", font: { size: 10 } },
+          grid: { color: "rgba(107, 114, 128, 0.10)" }
+        },
+        x: {
+          ticks: { color: "#6B7280", font: { size: 10 } },
+          grid: { display: false }
+        }
+      }
+    });
 
     new Chart(document.getElementById("meatRevenueChart"), {
       type: "line",
@@ -231,7 +312,7 @@
           pointBackgroundColor: "#8A2E1E"
         }]
       },
-      options: { responsive: true, plugins: { legend: { display: false } } }
+      options: sharedOptions(moneyFormatter, "#8A2E1E")
     });
 
     new Chart(document.getElementById("meatWeightChart"), {
@@ -240,7 +321,7 @@
         labels: data.labels,
         datasets: [{ data: data.weight, backgroundColor: "#E3B04B", borderRadius: 12 }]
       },
-      options: { responsive: true, plugins: { legend: { display: false } } }
+      options: sharedOptions(kilogramsFormatter, "#7A5600")
     });
 
     new Chart(document.getElementById("meatAverageChart"), {
@@ -257,7 +338,7 @@
           pointBackgroundColor: "#314E52"
         }]
       },
-      options: { responsive: true, plugins: { legend: { display: false } } }
+      options: sharedOptions(gramsFormatter, "#314E52")
     });
 
     new Chart(document.getElementById("meatDonationChart"), {
@@ -266,7 +347,7 @@
         labels: data.labels,
         datasets: [{ data: data.donation, backgroundColor: "#C96A4A", borderRadius: 12 }]
       },
-      options: { responsive: true, plugins: { legend: { display: false } } }
+      options: sharedOptions(kilogramsFormatter, "#8A2E1E")
     });
   }
 </script>

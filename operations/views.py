@@ -531,6 +531,40 @@ class MeatProductionEntryListView(OperationListView):
             {"color": "danger", "title": "Vermelho", "count": context["status_summary"]["danger"], "description": "Itens em queda"},
             {"color": "secondary", "title": "Receita total", "count": format_currency(total_revenue), "description": "Resultado do periodo"},
         ]
+        insight_cards = [
+            {
+                "label": "Maior receita",
+                "highlight": revenue_leader[0],
+                "value": format_currency(revenue_leader[1]["revenue"]) if revenue_leader[0] else "",
+                "tone": "brand",
+            }
+            if revenue_leader[0]
+            else None,
+            {
+                "label": "Maior peso",
+                "highlight": weight_leader[0],
+                "value": format_measure(weight_leader[1]["weight"], "kg") if weight_leader[0] else "",
+                "tone": "gold",
+            }
+            if weight_leader[0]
+            else None,
+            {
+                "label": "Maior doacao",
+                "highlight": donation_leader[0],
+                "value": format_measure(donation_leader[1]["donation"], "kg") if donation_leader[0] and donation_leader[1]["donation"] else "",
+                "tone": "coral",
+            }
+            if donation_leader[0] and donation_leader[1]["donation"]
+            else None,
+            {
+                "label": "Melhor media/cabeca",
+                "highlight": average_leader[0],
+                "value": format_measure(Decimal(str(max(average_values) if average_values else 0)), "g") if average_leader[0] else "",
+                "tone": "teal",
+            }
+            if average_leader[0]
+            else None,
+        ]
         context["meat_dashboard"] = {
             "charts": {
                 "labels": labels,
@@ -557,14 +591,8 @@ class MeatProductionEntryListView(OperationListView):
                     ],
                 },
             },
-            "insights": [
-                f"Maior receita: {revenue_leader[0]} ({format_currency(revenue_leader[1]['revenue'])})" if revenue_leader[0] else None,
-                f"Maior peso: {weight_leader[0]} ({format_measure(weight_leader[1]['weight'], 'kg')})" if weight_leader[0] else None,
-                f"Maior doacao: {donation_leader[0]} ({format_measure(donation_leader[1]['donation'], 'kg')})" if donation_leader[0] and donation_leader[1]["donation"] else None,
-                f"Melhor media/cabeca: {average_leader[0]} ({format_measure(Decimal(str(max(average_values) if average_values else 0)), 'g')})" if average_leader[0] else None,
-            ],
+            "insights": [item for item in insight_cards if item],
         }
-        context["meat_dashboard"]["insights"] = [item for item in context["meat_dashboard"]["insights"] if item]
         return context
 
 
