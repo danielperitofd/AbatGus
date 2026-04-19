@@ -262,3 +262,43 @@
   - leitura gerencial
   - semaforo de impacto
 - Os cards de status tambem ganharam descricoes mais objetivas.
+
+## 2026-04-19 - harmonizacao visual e interacao do dashboard
+
+### Padrao visual de cards destacados
+- Definido um novo padrao visual para cards de destaque do sistema, com:
+  - hierarquia visual mais forte
+  - area de valor principal mais evidente
+  - acabamento grafico sutil no fundo
+  - uso consistente nas telas principais
+- Esse padrao passou a ser aplicado no:
+  - dashboard principal
+  - fontes de renda
+  - carnes
+  - residuos
+  - indenizacoes
+  - central de relatorios
+
+### Sidebar com rolagem natural
+- Removido o comportamento fixo/sticky da sidebar no desktop.
+- A barra lateral agora rola junto com a pagina inteira, acompanhando o fluxo natural do conteudo.
+
+### Dashboard principal
+- O filtro `Janela analitica` deixou de depender de botao `Aplicar`.
+- A troca do dropdown agora submete automaticamente o formulario.
+- Cards superiores da visao geral receberam o novo estilo de destaque visual.
+
+### Tela de carnes
+- Graficos ajustados para leitura mais harmonica entre desktop e mobile.
+- Em telas maiores, os graficos ganharam mais altura util.
+- Em tablet e smartphone, os valores deixaram de aparecer dentro do grafico e passaram a ser exibidos em `card_legenda` abaixo de cada bloco.
+- Os cards de insights finais receberam novo padrao visual com:
+  - rotulo
+  - item em destaque
+  - valor principal
+  - cor de apoio por contexto
+
+### Padrao operacional unificado
+- Cards de status verde/amarelo/vermelho foram refinados visualmente nas listagens operacionais.
+- Cards de resumo financeiro/quantitativo tambem passaram a usar o padrao de destaque mais forte.
+- A central de relatorios foi ajustada para seguir a mesma linguagem visual das demais telas.
