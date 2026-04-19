@@ -8,58 +8,91 @@
       <h2>{{ title }}</h2>
       <p>{{ description }}</p>
     </div>
-    <div class="d-flex gap-2 flex-wrap">
-      <a href="{% url import_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-upload me-2"></i>{% trans "Importar Excel" %}</a>
+    <div class="page-actions-toolbar">
+      <a href="{% url import_url_name %}" class="btn btn-outline-secondary rounded-4 page-actions-toolbar__import"><i class="bi bi-upload me-2"></i>{% trans "Importar Excel" %}</a>
       <a href="{% url export_excel_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-file-earmark-excel me-2"></i>{% trans "Excel" %}</a>
       <a href="{% url export_pdf_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-printer me-2"></i>{% trans "PDF" %}</a>
-      <a href="{% url create_url_name %}" class="btn btn-primary rounded-4"><i class="bi bi-plus-circle me-2"></i>{% trans "Nova ocorrencia" %}</a>
+      <a href="{% url create_url_name %}" class="btn btn-primary rounded-4 page-actions-toolbar__primary"><i class="bi bi-plus-circle me-2"></i>{% trans "Nova ocorrencia" %}</a>
     </div>
   </div>
 
   <div class="row g-3 mb-4">
     {% for card in status_cards %}
       <div class="col-md-6 col-xl-4">
-        <div class="status-card status-card-highlight {{ card.color }}">
-          <span>{{ card.title }}</span>
-          <strong>{{ card.count }}</strong>
-          <div class="metric-foot">{{ card.description }}</div>
-        </div>
+        <a href="{% url 'operations:indemnity-analytic-report' card.status_key %}" class="status-card-link">
+          <div class="status-card status-card-highlight indemnity-status-card {{ card.color }}">
+            <div class="indemnity-status-card__top">
+              <span class="indemnity-status-card__label">{{ card.title }}</span>
+              <span class="indemnity-status-card__icon"><i class="bi {{ card.icon }}"></i></span>
+            </div>
+            <strong class="indemnity-status-card__value">{{ card.count }}</strong>
+            <div class="metric-foot indemnity-status-card__description">{{ card.description }}</div>
+            <div class="indemnity-status-card__helper">{{ card.helper }}</div>
+          </div>
+        </a>
       </div>
     {% endfor %}
   </div>
 
-  {% if summary_cards %}
-    <div class="row g-3 mb-4">
-      {% for card in summary_cards %}
-        <div class="col-md-6 col-xl-3">
-          <div class="metric-card metric-card-highlight">
-            <div class="metric-label">{{ card.label }}</div>
-            <div class="metric-value">{{ card.value }}</div>
+  <div class="row g-3 mb-4 indemnity-overview-shell">
+    <div class="col-xl-6">
+      <section class="content-card chart-card indemnity-chart-panel">
+        <div class="section-heading mb-3">
+          <div>
+            <h2>{% trans "Prejuizo liquido por periodo" %}</h2>
+            <p>{% trans "Evolucao do impacto real das indenizacoes." %}</p>
           </div>
         </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  {% if indemnity_insights %}
-    <div class="content-card mb-4">
-      <div class="section-heading mb-3">
-        <div>
-          <h2>{% trans "Leituras gerenciais" %}</h2>
-          <p>{% trans "Resumo rapido das perdas, recuperacoes e recorrencias." %}</p>
+        <div class="chart-canvas-wrap compact indemnity-chart-wrap">
+          <canvas id="indemnityTrendChart" height="220"></canvas>
         </div>
-      </div>
-      <div class="row g-3">
-        {% for insight in indemnity_insights %}
-          <div class="col-md-4">
-            <div class="info-card h-100">
-              <div class="metric-foot mb-0">{{ insight }}</div>
+      </section>
+
+      {% if summary_cards %}
+        <div class="row g-3 mt-1">
+          {% for card in summary_cards %}
+            <div class="col-md-6">
+              <div class="metric-card metric-card-highlight indemnity-summary-card">
+                <div class="metric-label">{{ card.label }}</div>
+                <div class="metric-value">{{ card.value }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    {% if indemnity_insights %}
+      <div class="col-xl-6">
+        <section class="content-card h-100 indemnity-insights-shell">
+          <div class="section-heading indemnity-insights-header mb-3">
+            <div>
+              <h2>{% trans "Leituras gerenciais" %}</h2>
+              <p>{% trans "Resumo rapido das perdas, recuperacoes e recorrencias." %}</p>
             </div>
           </div>
-        {% endfor %}
+          <div class="indemnity-insights-grid">
+            {% for insight in indemnity_insights %}
+              <a href="{% url 'operations:indemnity-insight-analytic-report' insight.report_key %}?target={{ insight.target_value|urlencode }}" class="status-card-link">
+                <article class="info-card indemnity-insight-card indemnity-insight-card--{{ insight.tone }}">
+                  <div class="indemnity-insight-card__row">
+                    <span class="indemnity-insight-card__icon" aria-hidden="true"><i class="bi {{ insight.icon }}"></i></span>
+                    <div class="indemnity-insight-card__content">
+                      <div class="indemnity-insight-card__label">{{ insight.label }}</div>
+                      <div class="indemnity-insight-card__highlight">{{ insight.highlight }}</div>
+                      <div class="indemnity-insight-card__metric">{{ insight.metric }}</div>
+                      <div class="indemnity-insight-card__description">{{ insight.description }}</div>
+                      <div class="indemnity-insight-card__ideal">{{ insight.ideal }}</div>
+                    </div>
+                  </div>
+                </article>
+              </a>
+            {% endfor %}
+          </div>
+        </section>
       </div>
-    </div>
-  {% endif %}
+    {% endif %}
+  </div>
 
   <form method="get" class="filter-panel mb-4">
     <div class="row g-3">
@@ -134,13 +167,11 @@
 {{ block.super }}
 <script>
   const indemnityChartSource = document.getElementById("indemnity-chart-data");
-  if (indemnityChartSource) {
+  const indemnityChartCanvas = document.getElementById("indemnityTrendChart");
+  if (indemnityChartSource && indemnityChartCanvas) {
     const chart = JSON.parse(indemnityChartSource.textContent);
     if (chart.labels && chart.labels.length) {
-      const canvas = document.createElement("canvas");
-      canvas.height = 120;
-      document.querySelector(".content-card").appendChild(canvas);
-      new Chart(canvas, {
+      new Chart(indemnityChartCanvas, {
         type: "line",
         data: {
           labels: chart.labels,
@@ -150,10 +181,29 @@
             borderColor: "#C13C37",
             backgroundColor: "rgba(193, 60, 55, 0.12)",
             fill: true,
-            tension: 0.3
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: "#C13C37"
           }]
         },
-        options: { responsive: true }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              ticks: { color: "#6b7280" },
+              grid: { display: false }
+            },
+            y: {
+              ticks: {
+                color: "#6b7280",
+                callback: (value) => `R$ ${Number(value || 0).toLocaleString("pt-BR")}`
+              },
+              grid: { color: "rgba(107, 114, 128, 0.12)" }
+            }
+          }
+        }
       });
     }
   }

@@ -3,6 +3,8 @@ from django.urls import path
 from .views import (
     IndemnityExcelExportView,
     IndemnityImportView,
+    IndemnityAnalyticalReportView,
+    IndemnityInsightAnalyticalReportView,
     IndemnityPdfExportView,
     IncomeItemCreateView,
     IncomeItemDeleteView,
@@ -94,6 +96,8 @@ urlpatterns = [
     path("residuos/<int:pk>/excluir/", ResidueCollectionDeleteView.as_view(), name="residue-delete"),
 
     path("indenizacoes/", IndemnityRecordListView.as_view(), name="indemnity-list"),
+    path("indenizacoes/analitico/<str:status_key>/", IndemnityAnalyticalReportView.as_view(), name="indemnity-analytic-report"),
+    path("indenizacoes/analitico/insight/<str:insight_key>/", IndemnityInsightAnalyticalReportView.as_view(), name="indemnity-insight-analytic-report"),
     path("indenizacoes/nova/", IndemnityRecordCreateView.as_view(), name="indemnity-create"),
     path("indenizacoes/importar/", IndemnityImportView.as_view(), name="indemnity-import"),
     path("indenizacoes/exportar/excel/", IndemnityExcelExportView.as_view(), name="indemnity-export-excel"),

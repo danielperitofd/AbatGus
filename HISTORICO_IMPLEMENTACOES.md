@@ -302,3 +302,54 @@
 - Cards de status verde/amarelo/vermelho foram refinados visualmente nas listagens operacionais.
 - Cards de resumo financeiro/quantitativo tambem passaram a usar o padrao de destaque mais forte.
 - A central de relatorios foi ajustada para seguir a mesma linguagem visual das demais telas.
+
+## 2026-04-19 - refinamentos mobile e relatorios analiticos de indenizacoes
+
+### Cabecalho mobile e acoes operacionais
+- Reestruturado o cabecalho mobile para trazer:
+  - organizacao ativa na barra superior escura
+  - avatar do usuario ao lado do menu
+  - card branco inferior mais limpo com breadcrumb, titulo e descricao
+- Reorganizados os botoes de acoes das telas operacionais no mobile para evitar colapso visual:
+  - CTA principal em destaque
+  - importacao em linha propria
+  - acoes secundarias distribuidas com melhor leitura
+
+### Indenizacoes - leitura gerencial reforcada
+- A secao `Leituras gerenciais` foi evoluida para um layout em grade 2x2 no desktop e empilhamento natural no mobile.
+- Cada card passou a exibir:
+  - label do insight
+  - valor principal
+  - metrica percentual ou quantitativa
+  - descricao de apoio
+  - meta de referencia
+- Novos indicadores adicionados:
+  - percentual do motivo mais frequente em relacao ao total
+  - percentual do produto com mais perdas em relacao ao total
+  - quantidade de responsaveis fora do ideal zero
+  - clientes afetados por `mau manejo`
+
+### Indenizacoes - navegacao analitica
+- Os cards de status `Verde`, `Amarelo` e `Vermelho` passaram a abrir relatorios analiticos por cor/semaforo.
+- Os cards de `Leituras gerenciais` tambem passaram a ser clicaveis, levando para relatorios analiticos especificos de:
+  - motivo
+  - produto
+  - responsavel
+  - clientes afetados
+- Criada a tela dedicada `indemnity_analytic_report.html` para consolidar os recortes analiticos com:
+  - resumo do recorte
+  - destaques analiticos
+  - filtros
+  - tabela detalhada das ocorrencias
+
+### Validacao tecnica desta rodada
+- Validado com `manage.py check`.
+- Validadas as rotas:
+  - `/operacoes/indenizacoes/`
+  - `/operacoes/indenizacoes/analitico/success/`
+  - `/operacoes/indenizacoes/analitico/warning/`
+  - `/operacoes/indenizacoes/analitico/danger/`
+  - `/operacoes/indenizacoes/analitico/insight/reason/`
+  - `/operacoes/indenizacoes/analitico/insight/product/`
+  - `/operacoes/indenizacoes/analitico/insight/responsible/`
+  - `/operacoes/indenizacoes/analitico/insight/affected-clients/`

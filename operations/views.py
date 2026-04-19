@@ -848,9 +848,33 @@ class IndemnityRecordListView(OperationListView):
             key = f"{entry.occurred_on.month:02d}/{entry.occurred_on.year}"
             monthly_series[key] += entry.net_amount
         context["status_cards"] = [
-            {"color": "success", "title": "Verde", "count": context["status_summary"]["success"], "description": "Ocorrências revertidas ou sem prejuízo líquido"},
-            {"color": "warning", "title": "Amarelo", "count": context["status_summary"]["warning"], "description": "Ocorrências com impacto moderado"},
-            {"color": "danger", "title": "Vermelho", "count": context["status_summary"]["danger"], "description": "Ocorrências com impacto alto"},
+            {
+                "color": "success",
+                "status_key": "success",
+                "title": "Verde",
+                "count": context["status_summary"]["success"],
+                "description": "Ocorrências revertidas ou sem prejuízo líquido",
+                "icon": "bi-shield-check",
+                "helper": "Casos controlados sem perda líquida relevante.",
+            },
+            {
+                "color": "warning",
+                "status_key": "warning",
+                "title": "Amarelo",
+                "count": context["status_summary"]["warning"],
+                "description": "Ocorrências com impacto moderado",
+                "icon": "bi-exclamation-triangle",
+                "helper": "Pedem atenção, mas ainda com recuperação parcial.",
+            },
+            {
+                "color": "danger",
+                "status_key": "danger",
+                "title": "Vermelho",
+                "count": context["status_summary"]["danger"],
+                "description": "Ocorrências com impacto alto",
+                "icon": "bi-fire",
+                "helper": "Perdas com maior urgência gerencial e financeira.",
+            },
         ]
         context["summary_cards"] = [
             {"label": "Perda bruta", "value": format_currency(total_gross)},
@@ -858,16 +882,245 @@ class IndemnityRecordListView(OperationListView):
             {"label": "Prejuizo liquido", "value": format_currency(total_net)},
             {"label": "Percentual de recuperacao", "value": f"{recovery_rate.quantize(Decimal('0.01'))}%"},
         ]
+        total_entries = len(entries) or 1
+        top_reason_name, top_reason_count = reason_counter.most_common(1)[0] if reason_counter else ("Zero Quebra", 0)
+        top_product_name, top_product_count = product_counter.most_common(1)[0] if product_counter else ("Zero Perdas", 0)
+        top_responsible_name, top_responsible_count = responsible_counter.most_common(1)[0] if responsible_counter else ("Sem responsavel informado", 0)
+        distinct_responsibles = len(
+            {
+                entry.responsible_name.strip()
+                for entry in entries
+                if (entry.responsible_name or "").strip()
+            }
+        )
+        affected_clients = len(
+            {
+                entry.owner_name.strip()
+                for entry in entries
+                if (entry.owner_name or "").strip() and "mau manejo" in (entry.reason or "").lower()
+            }
+        )
         context["indemnity_insights"] = [
-            f"Motivo mais frequente: {reason_counter.most_common(1)[0][0]}" if reason_counter else None,
-            f"Produto com mais perdas: {product_counter.most_common(1)[0][0]}" if product_counter else None,
-            f"Responsavel recorrente: {responsible_counter.most_common(1)[0][0]}" if responsible_counter else None,
+            {
+                "label": "Motivo mais frequente",
+                "report_key": "reason",
+                "highlight": top_reason_name,
+                "target_value": top_reason_name,
+                "tone": "danger",
+                "icon": "bi-cone-striped",
+                "description": "Aponta a causa que mais se repete nas ocorrências.",
+                "metric": f"{top_reason_count} ocorrências · {(Decimal(top_reason_count) / Decimal(total_entries) * Decimal('100')).quantize(Decimal('0.1'))}%",
+                "ideal": "Meta de referência: Zero quebra",
+            }
+            if reason_counter or entries
+            else None,
+            {
+                "label": "Produto com mais perdas",
+                "report_key": "product",
+                "highlight": top_product_name,
+                "target_value": top_product_name,
+                "tone": "warning",
+                "icon": "bi-box-seam",
+                "description": "Mostra qual item mais concentrou perdas no período.",
+                "metric": f"{top_product_count} perdas · {(Decimal(top_product_count) / Decimal(total_entries) * Decimal('100')).quantize(Decimal('0.1'))}%",
+                "ideal": "Meta de referência: Zero perdas",
+            }
+            if product_counter or entries
+            else None,
+            {
+                "label": "Responsavel recorrente",
+                "report_key": "responsible",
+                "highlight": top_responsible_name,
+                "target_value": top_responsible_name,
+                "tone": "brand",
+                "icon": "bi-person-badge",
+                "description": "Ajuda a identificar recorrência operacional por responsável.",
+                "metric": f"{distinct_responsibles} responsavel(is) fora do ideal zero",
+                "ideal": f"{top_responsible_count} ocorrência(s) vinculadas",
+            }
+            if entries
+            else None,
+            {
+                "label": "Clientes afetados",
+                "report_key": "affected-clients",
+                "highlight": f"{affected_clients} cliente(s)",
+                "target_value": "mau manejo",
+                "tone": "teal",
+                "icon": "bi-people",
+                "description": "Clientes impactados por registros classificados como mau manejo.",
+                "metric": "Indicador focado em relacionamento e qualidade operacional.",
+                "ideal": "Meta de referência: Zero clientes afetados",
+            }
+            if entries
+            else None,
         ]
         context["indemnity_insights"] = [item for item in context["indemnity_insights"] if item]
         context["indemnity_chart"] = {
             "labels": list(monthly_series.keys()),
             "values": [float(value) for value in monthly_series.values()],
         }
+        return context
+
+
+class IndemnityAnalyticalReportView(OperationListView):
+    model = IndemnityRecord
+    template_name = "operations/indemnity_analytic_report.html"
+    context_object_name = "entries"
+    status_attach = attach_indemnity_status
+    module_title = "Relatório analítico de indenizações"
+    module_description = "Leitura detalhada das ocorrências classificadas pelo semáforo."
+    create_url_name = "operations:indemnity-create"
+    import_url_name = "operations:indemnity-import"
+    export_excel_url_name = "operations:indemnity-export-excel"
+    export_pdf_url_name = "operations:indemnity-export-pdf"
+    detail_url_name = "operations:indemnity-detail"
+
+    STATUS_META = {
+        "success": {
+            "title": "Ocorrências revertidas ou sem prejuízo líquido",
+            "description": "Casos controlados com retorno total ou impacto zerado.",
+        },
+        "warning": {
+            "title": "Ocorrências com impacto moderado",
+            "description": "Casos parcialmente recuperados que ainda exigem atenção.",
+        },
+        "danger": {
+            "title": "Ocorrências com impacto alto",
+            "description": "Casos com maior prejuízo e urgência gerencial.",
+        },
+    }
+
+    def filter_by_query(self, queryset, query):
+        return queryset.filter(product__icontains=query)
+
+    def get_queryset(self):
+        entries = list(super().get_queryset())
+        self.status_key = self.kwargs.get("status_key", "success")
+        return [entry for entry in entries if getattr(entry, "semaphore", {}).get("color") == self.status_key]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        entries = context["entries"]
+        meta = self.STATUS_META.get(self.status_key, self.STATUS_META["success"])
+        total_net = sum(entry.net_amount for entry in entries)
+        total_outgoing = sum(entry.outgoing_amount for entry in entries)
+        total_reversal = sum(entry.reversal_amount for entry in entries)
+        reason_counter = Counter(entry.reason for entry in entries if entry.reason)
+        product_counter = Counter(entry.product for entry in entries if entry.product)
+        responsible_counter = Counter(entry.responsible_name for entry in entries if entry.responsible_name)
+        context.update(
+            {
+                "page_title": meta["title"],
+                "page_description": meta["description"],
+                "report_status_key": self.status_key,
+                "report_summary_cards": [
+                    {"label": "Ocorrências", "value": len(entries)},
+                    {"label": "Saída bruta", "value": format_currency(total_outgoing)},
+                    {"label": "Reversão", "value": format_currency(total_reversal)},
+                    {"label": "Prejuízo líquido", "value": format_currency(total_net)},
+                ],
+                "report_highlights": [
+                    f"Motivo líder: {reason_counter.most_common(1)[0][0]}" if reason_counter else None,
+                    f"Produto crítico: {product_counter.most_common(1)[0][0]}" if product_counter else None,
+                    f"Responsável recorrente: {responsible_counter.most_common(1)[0][0]}" if responsible_counter else "Sem responsável informado",
+                ],
+            }
+        )
+        context["report_highlights"] = [item for item in context["report_highlights"] if item]
+        return context
+
+
+class IndemnityInsightAnalyticalReportView(OperationListView):
+    model = IndemnityRecord
+    template_name = "operations/indemnity_analytic_report.html"
+    context_object_name = "entries"
+    status_attach = attach_indemnity_status
+    module_title = "Relatório analítico de indenizações"
+    module_description = "Leitura detalhada dos indicadores gerenciais."
+    create_url_name = "operations:indemnity-create"
+    import_url_name = "operations:indemnity-import"
+    export_excel_url_name = "operations:indemnity-export-excel"
+    export_pdf_url_name = "operations:indemnity-export-pdf"
+    detail_url_name = "operations:indemnity-detail"
+
+    INSIGHT_META = {
+        "reason": {
+            "title": "Relatório analítico por motivo",
+            "description": "Ocorrências agrupadas pelo motivo operacional mais recorrente.",
+        },
+        "product": {
+            "title": "Relatório analítico por produto",
+            "description": "Ocorrências associadas ao produto com maior concentração de perdas.",
+        },
+        "responsible": {
+            "title": "Relatório analítico por responsável",
+            "description": "Ocorrências vinculadas ao responsável mais recorrente no período.",
+        },
+        "affected-clients": {
+            "title": "Relatório analítico de clientes afetados",
+            "description": "Ocorrências com clientes impactados por mau manejo.",
+        },
+    }
+
+    def filter_by_query(self, queryset, query):
+        return queryset.filter(product__icontains=query)
+
+    def get_queryset(self):
+        entries = list(super().get_queryset())
+        self.insight_key = self.kwargs.get("insight_key", "reason")
+        self.target_value = self.request.GET.get("target", "").strip()
+
+        if self.insight_key == "reason" and self.target_value:
+            entries = [entry for entry in entries if (entry.reason or "").strip().lower() == self.target_value.lower()]
+        elif self.insight_key == "product" and self.target_value:
+            entries = [entry for entry in entries if (entry.product or "").strip().lower() == self.target_value.lower()]
+        elif self.insight_key == "responsible" and self.target_value:
+            entries = [entry for entry in entries if (entry.responsible_name or "").strip().lower() == self.target_value.lower()]
+        elif self.insight_key == "affected-clients":
+            entries = [
+                entry
+                for entry in entries
+                if (entry.owner_name or "").strip() and "mau manejo" in (entry.reason or "").lower()
+            ]
+        return entries
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        entries = context["entries"]
+        meta = self.INSIGHT_META.get(self.insight_key, self.INSIGHT_META["reason"])
+        total_net = sum(entry.net_amount for entry in entries)
+        total_outgoing = sum(entry.outgoing_amount for entry in entries)
+        total_reversal = sum(entry.reversal_amount for entry in entries)
+        reason_counter = Counter(entry.reason for entry in entries if entry.reason)
+        product_counter = Counter(entry.product for entry in entries if entry.product)
+        responsible_counter = Counter(entry.responsible_name for entry in entries if entry.responsible_name)
+        owners_counter = Counter(entry.owner_name for entry in entries if entry.owner_name)
+
+        focus_label = self.target_value or (
+            "Mau manejo" if self.insight_key == "affected-clients" else "Sem recorte definido"
+        )
+
+        context.update(
+            {
+                "page_title": meta["title"],
+                "page_description": meta["description"],
+                "report_focus_label": focus_label,
+                "report_summary_cards": [
+                    {"label": "Ocorrências", "value": len(entries)},
+                    {"label": "Saída bruta", "value": format_currency(total_outgoing)},
+                    {"label": "Reversão", "value": format_currency(total_reversal)},
+                    {"label": "Prejuízo líquido", "value": format_currency(total_net)},
+                ],
+                "report_highlights": [
+                    f"Foco do relatório: {focus_label}",
+                    f"Motivo líder: {reason_counter.most_common(1)[0][0]}" if reason_counter else None,
+                    f"Produto crítico: {product_counter.most_common(1)[0][0]}" if product_counter else None,
+                    f"Responsável recorrente: {responsible_counter.most_common(1)[0][0]}" if responsible_counter else None,
+                    f"Cliente mais impactado: {owners_counter.most_common(1)[0][0]}" if owners_counter and self.insight_key == "affected-clients" else None,
+                ],
+            }
+        )
+        context["report_highlights"] = [item for item in context["report_highlights"] if item]
         return context
 
 

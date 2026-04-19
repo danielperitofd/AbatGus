@@ -19,7 +19,7 @@
     <h1 class="page-title">{{ page_title|default:page_title_context }}</h1>
     <p class="page-subtitle">{{ page_description|default:page_subtitle_context }}</p>
   </div>
-  <div class="topbar-actions">
+  <div class="topbar-actions d-none d-lg-flex">
     {% if can_see_admin_tools %}
       <div class="dropdown">
         <button class="btn btn-light rounded-4 dropdown-toggle" data-bs-toggle="dropdown">

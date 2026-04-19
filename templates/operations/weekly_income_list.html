@@ -8,11 +8,11 @@
       <h2>{{ title }}</h2>
       <p>{{ description }}</p>
     </div>
-    <div class="d-flex gap-2 flex-wrap">
-      <a href="{% url import_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-upload me-2"></i>{% trans "Importar Excel" %}</a>
+    <div class="page-actions-toolbar">
+      <a href="{% url import_url_name %}" class="btn btn-outline-secondary rounded-4 page-actions-toolbar__import"><i class="bi bi-upload me-2"></i>{% trans "Importar Excel" %}</a>
       <a href="{% url export_excel_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-file-earmark-excel me-2"></i>{% trans "Excel" %}</a>
       <a href="{% url export_pdf_url_name %}" class="btn btn-outline-secondary rounded-4"><i class="bi bi-printer me-2"></i>{% trans "PDF" %}</a>
-      <a href="{% url create_url_name %}" class="btn btn-primary rounded-4"><i class="bi bi-plus-circle me-2"></i>{% trans "Novo lancamento" %}</a>
+      <a href="{% url create_url_name %}" class="btn btn-primary rounded-4 page-actions-toolbar__primary"><i class="bi bi-plus-circle me-2"></i>{% trans "Novo lancamento" %}</a>
     </div>
   </div>
 

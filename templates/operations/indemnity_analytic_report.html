@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load formatters i18n %}
+{% block title %}{{ page_title }} | AbatGus{% endblock %}
+{% block content %}
+<section class="content-card">
+  <div class="section-heading">
+    <div>
+      <div class="abat-breadcrumb small mb-2">
+        <a href="{% url 'core:dashboard' %}">{% trans "Inicio" %}</a>
+        <span class="mx-1">/</span>
+        <a href="{% url 'operations:indemnity-list' %}">{% trans "Indenizacoes" %}</a>
+        <span class="mx-1">/</span>
+        <span class="text-brand">{{ page_title }}</span>
+      </div>
+      <h2>{{ page_title }}</h2>
+      <p>{{ page_description }}</p>
+    </div>
+    <div class="page-actions-toolbar">
+      <a href="{% url 'operations:indemnity-list' %}" class="btn btn-outline-secondary rounded-4">
+        <i class="bi bi-arrow-left me-2"></i>{% trans "Voltar para indenizacoes" %}
+      </a>
+      <a href="{% url create_url_name %}" class="btn btn-primary rounded-4 page-actions-toolbar__primary">
+        <i class="bi bi-plus-circle me-2"></i>{% trans "Nova ocorrencia" %}
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    {% for card in report_summary_cards %}
+      <div class="col-md-6 col-xl-3">
+        <div class="metric-card metric-card-highlight">
+          <div class="metric-label">{{ card.label }}</div>
+          <div class="metric-value">{{ card.value }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if report_highlights %}
+    <div class="row g-3 mb-4">
+      {% for item in report_highlights %}
+        <div class="col-md-4">
+          <div class="info-card report-highlight-card">
+            <div class="report-highlight-card__label">{% trans "Leitura analitica" %}</div>
+            <div class="report-highlight-card__value">{{ item }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="get" class="filter-panel mb-4">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">{% trans "Buscar produto" %}</label>
+        <input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="{% trans 'Ex.: pernil' %}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">{% trans "Ano" %}</label>
+        <input type="number" name="year" value="{{ filters.year }}" class="form-control" placeholder="2026">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">{% trans "Mes" %}</label>
+        <input type="number" name="month" value="{{ filters.month }}" class="form-control" placeholder="4">
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-outline-secondary rounded-4 w-100">{% trans "Aplicar filtros" %}</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table abat-table">
+      <thead>
+        <tr>
+          <th>{% trans "Produto" %}</th>
+          <th>{% trans "Data" %}</th>
+          <th>{% trans "Dono" %}</th>
+          <th>{% trans "Responsavel" %}</th>
+          <th>{% trans "Motivo" %}</th>
+          <th>{% trans "Saida" %}</th>
+          <th>{% trans "Reversao" %}</th>
+          <th>{% trans "Liquido" %}</th>
+          <th>{% trans "Leitura" %}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in entries %}
+          <tr>
+            <td>{{ item.product }}</td>
+            <td>{{ item.occurred_on|date:"d/m/Y" }}</td>
+            <td>{{ item.owner_name }}</td>
+            <td>{{ item.responsible_name|default:"-" }}</td>
+            <td>{{ item.reason|default:"-" }}</td>
+            <td>{{ item.outgoing_amount|brl }}</td>
+            <td>{{ item.reversal_amount|brl }}</td>
+            <td>{{ item.net_amount|brl }}</td>
+            <td>
+              <span class="status-pill {{ item.semaphore.color }}">{{ item.semaphore.label }}</span>
+              <div class="metric-foot mt-1">{{ item.financial_status }}</div>
+            </td>
+            <td class="text-end">
+              <a href="{% url 'operations:indemnity-detail' item.pk %}" class="btn btn-sm btn-outline-secondary rounded-4">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="10">{% trans "Nenhuma ocorrencia encontrada para este recorte." %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

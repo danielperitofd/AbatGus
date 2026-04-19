@@ -16,13 +16,30 @@
 <body data-language-code="{{ LANGUAGE_CODE|default:'pt-br' }}" data-currency-code="{{ current_organization.default_currency|default:'BRL' }}">
   {% if user.is_authenticated %}
     <div class="mobile-topbar d-lg-none">
-      <div>
+      <div class="mobile-topbar__brand">
         <strong>AbatGus</strong>
-        <div class="small text-white-50">{{ current_organization|default:"Sem organização ativa" }}</div>
+        {% if can_see_admin_tools %}
+          <div class="dropdown">
+            <button class="btn btn-light btn-sm rounded-3 dropdown-toggle mobile-org-switch" data-bs-toggle="dropdown">
+              {% if current_organization %}{{ current_organization }}{% else %}{% trans "Selecionar organizacao" %}{% endif %}
+            </button>
+            <div class="dropdown-menu p-2 rounded-4 border-0 shadow">
+              {% for org in organizations %}
+                <form method="post" action="{% url 'core:switch-organization' org.pk %}">
+                  {% csrf_token %}
+                  <button class="dropdown-item rounded-3" type="submit">{{ org.name }}</button>
+                </form>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
       </div>
-      <button class="btn btn-outline-light btn-sm rounded-4" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
-        <i class="bi bi-list"></i>
-      </button>
+      <div class="mobile-topbar__actions">
+        <div class="avatar-circle mobile-avatar-circle">{{ user.display_name|slice:":1"|upper }}</div>
+        <button class="btn btn-outline-light btn-sm rounded-4 mobile-menu-button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
     </div>
 
     <div class="offcanvas offcanvas-start offcanvas-abatgus" tabindex="-1" id="sidebarMenu">

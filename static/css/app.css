@@ -179,6 +179,17 @@ body {
   margin-bottom: 1rem;
 }
 
+.page-actions-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.page-actions-toolbar .btn {
+  white-space: nowrap;
+}
+
 .metric-card {
   padding: 1.2rem;
   height: 100%;
@@ -265,12 +276,55 @@ body {
 
 .mobile-topbar {
   justify-content: space-between;
+  align-items: flex-start;
   background: linear-gradient(180deg, #1d252d 0%, #11171d 100%);
   color: #fff;
-  padding: 1rem;
+  padding: 0.95rem 1rem 0.85rem;
   position: sticky;
   top: 0;
   z-index: 1030;
+}
+
+.mobile-topbar__brand {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.mobile-topbar__brand strong {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.mobile-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.mobile-org-switch {
+  min-height: 36px;
+  border-radius: 10px !important;
+  border: 0;
+  font-weight: 600;
+  color: #1f2933;
+  padding: 0.3rem 0.7rem;
+}
+
+.mobile-avatar-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(227, 176, 75, 0.28);
+}
+
+.mobile-menu-button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px !important;
+  border-width: 1px;
 }
 
 .offcanvas-abatgus {
@@ -330,6 +384,16 @@ input[type="file"] {
   padding: 1rem 1.15rem;
   border: 1px solid var(--line);
   background: #fff;
+}
+
+.status-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.status-card-link:hover {
+  color: inherit;
 }
 
 .status-card-highlight {
@@ -556,6 +620,293 @@ input[type="file"] {
   background: #314e52;
 }
 
+.indemnity-status-card {
+  min-height: 186px;
+  padding: 1.15rem 1.1rem 1.05rem;
+  border-radius: 22px;
+}
+
+.indemnity-status-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+
+.indemnity-status-card__label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #667085;
+}
+
+.indemnity-status-card__value {
+  display: block;
+  font-size: clamp(2.3rem, 2.6vw, 2.9rem);
+  font-weight: 800;
+  line-height: 0.95;
+  margin: 0 0 0.7rem;
+}
+
+.indemnity-status-card__description {
+  max-width: 20ch;
+  font-size: 0.96rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #2f3a4b;
+}
+
+.indemnity-status-card__helper {
+  margin-top: 0.55rem;
+  max-width: 24ch;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #7a8699;
+}
+
+.indemnity-status-card__icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+  color: rgba(47, 58, 75, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.indemnity-status-card.success .indemnity-status-card__value {
+  color: #2f8f62;
+}
+
+.indemnity-status-card.warning .indemnity-status-card__value {
+  color: #3d2d2d;
+}
+
+.indemnity-status-card.danger .indemnity-status-card__value {
+  color: #4b2b34;
+}
+
+.indemnity-overview-shell {
+  align-items: flex-start;
+}
+
+.indemnity-chart-panel {
+  height: auto;
+  margin-bottom: 0.25rem;
+}
+
+.indemnity-chart-wrap {
+  min-height: 300px;
+}
+
+.indemnity-summary-card {
+  min-height: 122px;
+}
+
+.indemnity-summary-card .metric-label {
+  font-size: 0.86rem;
+}
+
+.indemnity-summary-card .metric-value {
+  font-size: clamp(1.95rem, 2.3vw, 2.4rem);
+}
+
+.indemnity-insight-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.35rem 1.2rem 1.2rem;
+  border: 1px solid rgba(227, 221, 209, 0.92);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 14px 34px rgba(82, 48, 28, 0.07);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  min-height: 222px;
+}
+
+.indemnity-insight-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 42px rgba(82, 48, 28, 0.1);
+  border-color: rgba(138, 46, 30, 0.14);
+}
+
+.indemnity-insight-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  border-radius: 22px 0 0 22px;
+}
+
+.indemnity-insights-shell {
+  padding: 1.35rem 1.3rem;
+  height: 100%;
+}
+
+.indemnity-insights-header h2 {
+  font-size: clamp(1.45rem, 1.8vw, 1.9rem);
+  letter-spacing: -0.02em;
+}
+
+.indemnity-insights-header p {
+  font-size: 0.9rem;
+  color: rgba(107, 114, 128, 0.9);
+}
+
+.indemnity-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-content: start;
+}
+
+.indemnity-insight-card::after {
+  display: none;
+}
+
+.indemnity-insight-card__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  height: 100%;
+}
+
+.indemnity-insight-card__content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.indemnity-insight-card__label {
+  color: var(--muted);
+  font-size: clamp(0.92rem, 1.05vw, 1rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-transform: none;
+  margin-top: 0.1rem;
+}
+
+.indemnity-insight-card__highlight {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(0.98rem, 1.18vw, 1.12rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0.4rem 0 0.85rem;
+  color: var(--text);
+}
+
+.indemnity-insight-card__metric {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.95rem;
+  color: #344054;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.indemnity-insight-card__description {
+  position: relative;
+  z-index: 1;
+  max-width: 24ch;
+  color: rgba(107, 114, 128, 0.92);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin-top: auto;
+}
+
+.indemnity-insight-card__ideal {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.7rem;
+  color: #8a5312;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.indemnity-insight-card__icon {
+  position: relative;
+  z-index: 1;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 22px rgba(82, 48, 28, 0.08);
+  font-size: 1.45rem;
+}
+
+.indemnity-insight-card--brand::before {
+  background: #2bbf6a;
+}
+
+.indemnity-insight-card--brand .indemnity-insight-card__icon {
+  color: #2bbf6a;
+}
+
+.indemnity-insight-card--warning::before {
+  background: #ffab1f;
+}
+
+.indemnity-insight-card--warning .indemnity-insight-card__icon {
+  color: #ffab1f;
+}
+
+.indemnity-insight-card--danger::before {
+  background: #ff5436;
+}
+
+.indemnity-insight-card--danger .indemnity-insight-card__icon {
+  color: #ff5436;
+}
+
+.indemnity-insight-card--teal::before {
+  background: #2d7f84;
+}
+
+.indemnity-insight-card--teal .indemnity-insight-card__icon {
+  color: #2d7f84;
+}
+
+.report-highlight-card {
+  min-height: 116px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 1.2rem 1.15rem;
+}
+
+.report-highlight-card__label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.report-highlight-card__value {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--text);
+}
+
 .mobile-chart-legend {
   display: none;
 }
@@ -714,8 +1065,61 @@ input[type="file"] {
   }
 
   .topbar-shell {
+    padding: 1.55rem 1.2rem 1.35rem;
+    border-radius: 28px;
+  }
+
+  .section-heading {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+
+  .page-actions-toolbar {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin-top: 0.15rem;
+  }
+
+  .page-actions-toolbar .btn {
+    width: 100%;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.2;
+    padding-inline: 0.9rem;
+  }
+
+  .page-actions-toolbar .btn i {
+    margin-right: 0.4rem !important;
+  }
+
+  .page-actions-toolbar__import {
+    grid-column: 1 / -1;
+  }
+
+  .page-actions-toolbar__primary {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .page-title {
+    font-size: clamp(2rem, 7vw, 2.45rem);
+    line-height: 1.02;
+  }
+
+  .page-subtitle {
+    max-width: 22ch;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .abat-breadcrumb {
+    font-size: 0.9rem;
   }
 
   .status-grid {
@@ -741,6 +1145,48 @@ input[type="file"] {
   .mobile-chart-legend {
     display: grid;
     gap: 0.55rem;
+  }
+
+  .indemnity-chart-wrap {
+    min-height: 220px;
+  }
+
+  .indemnity-summary-card {
+    min-height: 108px;
+  }
+
+  .indemnity-insights-shell {
+    padding: 1.15rem 1.1rem;
+  }
+
+  .indemnity-insights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .indemnity-insight-card {
+    padding: 1.15rem 1rem 1.05rem;
+    min-height: auto;
+  }
+
+  .indemnity-insight-card__row {
+    gap: 0.85rem;
+    height: auto;
+  }
+
+  .indemnity-insight-card__icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+    font-size: 1.2rem;
+  }
+
+  .indemnity-insight-card__metric {
+    width: auto;
+    justify-content: flex-start;
+  }
+
+  .report-highlight-card {
+    min-height: 100px;
   }
 
   .admin-toolkit-card__actions {
