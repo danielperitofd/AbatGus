@@ -87,6 +87,13 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.side-link-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
 .main-shell {
   padding: 1.25rem;
 }
@@ -119,6 +126,9 @@ body {
   gap: 1rem;
   padding: 1rem 1.2rem;
   margin-bottom: 1.2rem;
+  position: relative;
+  z-index: 20;
+  overflow: visible;
 }
 
 .page-title,
@@ -155,6 +165,35 @@ body {
 .topbar-actions,
 .user-chip {
   gap: 0.85rem;
+}
+
+.user-chip-button {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  color: inherit;
+}
+
+.user-chip-button:hover,
+.user-chip-button:focus {
+  color: inherit;
+}
+
+.user-chip-caret {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.user-menu-dropdown {
+  min-width: 220px;
+  z-index: 1080;
+}
+
+.user-menu-dropdown .dropdown-item {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
 }
 
 .avatar-circle {
@@ -316,6 +355,10 @@ body {
   height: 44px;
   border-radius: 14px;
   box-shadow: 0 10px 24px rgba(227, 176, 75, 0.28);
+}
+
+.mobile-avatar-trigger {
+  line-height: 0;
 }
 
 .mobile-menu-button {

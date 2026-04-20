@@ -35,11 +35,25 @@
         </div>
       </div>
     {% endif %}
-    <div class="user-chip">
-      <div class="avatar-circle">{{ user.display_name|slice:":1"|upper }}</div>
-      <div>
-        <strong>{{ user.display_name }}</strong>
-        <div class="small text-muted">{{ user.get_role_display }}</div>
+    <div class="dropdown">
+      <button class="user-chip user-chip-button btn p-0 border-0 bg-transparent" data-bs-toggle="dropdown" aria-expanded="false">
+        <div class="avatar-circle">{{ user.display_name|slice:":1"|upper }}</div>
+        <div class="text-start">
+          <strong>{{ user.display_name }}</strong>
+          <div class="small text-muted">{{ user.get_role_display }}</div>
+        </div>
+        <i class="bi bi-chevron-down user-chip-caret"></i>
+      </button>
+      <div class="dropdown-menu dropdown-menu-end p-2 rounded-4 border-0 shadow user-menu-dropdown">
+        <a class="dropdown-item rounded-3" href="{% url 'accounts:update' user.pk %}">
+          <i class="bi bi-person-circle me-2"></i>{% trans "Perfil" %}
+        </a>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button class="dropdown-item rounded-3 text-danger" type="submit">
+            <i class="bi bi-box-arrow-right me-2"></i>{% trans "Logout" %}
+          </button>
+        </form>
       </div>
     </div>
   </div>

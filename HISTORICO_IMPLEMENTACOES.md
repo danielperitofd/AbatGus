@@ -353,3 +353,25 @@
   - `/operacoes/indenizacoes/analitico/insight/product/`
   - `/operacoes/indenizacoes/analitico/insight/responsible/`
   - `/operacoes/indenizacoes/analitico/insight/affected-clients/`
+
+## 2026-04-19 - menu de perfil e logout
+
+### Navegacao do usuario autenticado
+- Adicionado menu no avatar do usuario no desktop com acessos para:
+  - `Perfil`
+  - `Logout`
+- Reaproveitado o mesmo conceito no mobile para manter consistencia entre as experiencias.
+- O item `Perfil` aponta para a edicao do proprio usuario autenticado.
+
+### Logout em configuracoes
+- Incluido atalho explicito de `Logout` dentro da secao `Configuracoes` da sidebar.
+- O encerramento de sessao foi mantido de forma segura via `POST`.
+
+### Ajuste visual do dropdown no desktop
+- Corrigido o comportamento do dropdown do avatar no desktop para nao ser cortado pelo conteudo logo abaixo do cabecalho.
+- Ajustados `z-index` e `overflow` do topo para o menu abrir com a mesma limpeza visual aprovada no mobile.
+
+### Validacao tecnica desta rodada
+- Validado com `manage.py check`.
+- Validado o render do dashboard com links de `Perfil` e `Logout`.
+- Validado o ajuste visual do dropdown em telas desktop.
