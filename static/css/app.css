@@ -1349,6 +1349,9 @@ input[type="file"] {
   --ua-primary: #2f6fed;
   --ua-primary-soft: #edf3ff;
   --ua-shadow: 0 14px 40px rgba(29, 45, 80, 0.08);
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 2px 20px;
 }
 
 .user-admin-page__header {
@@ -1459,18 +1462,22 @@ input[type="file"] {
   padding: 1.35rem;
 }
 
+.user-admin-sidebar__section + .user-admin-sidebar__section {
+  padding-top: 0;
+}
+
 .user-admin-sidebar .upload-zone {
   position: relative;
   border: 1.5px dashed #c9d5e7;
   background: linear-gradient(180deg, #fafcff, #f4f8ff);
   border-radius: 22px;
-  min-height: 280px;
+  min-height: 250px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 1.4rem;
+  padding: 1.25rem;
   transition: 0.2s ease;
   cursor: pointer;
 }
@@ -1519,9 +1526,9 @@ input[type="file"] {
 }
 
 .upload-meta {
-  margin: 0.45rem 0 1rem;
+  margin: 0.4rem 0 0.9rem;
   color: var(--ua-muted);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.45;
   max-width: 240px;
 }
@@ -1647,13 +1654,13 @@ input[type="file"] {
 
 .user-admin-main .form-control,
 .user-admin-main .form-select {
-  min-height: 50px;
+  min-height: 48px;
   border-radius: 15px;
   border: 1px solid #d7e0ec;
   background: #fbfcfe;
   color: #162033;
-  font-size: 0.96rem;
-  padding: 0.78rem 0.95rem;
+  font-size: 0.95rem;
+  padding: 0.72rem 0.92rem;
   box-shadow: none !important;
 }
 
@@ -1664,7 +1671,7 @@ input[type="file"] {
 }
 
 .user-admin-main textarea.form-control {
-  min-height: 150px;
+  min-height: 170px;
   resize: vertical;
 }
 
@@ -1709,6 +1716,17 @@ input[type="file"] {
   padding: 0.75rem 0.9rem;
   height: auto;
   overflow: hidden;
+  min-height: 100%;
+}
+
+.user-admin-status-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.switch-card--compact {
+  padding: 0.68rem 0.82rem;
+  min-height: 88px;
 }
 
 .switch-row {
@@ -1728,8 +1746,9 @@ input[type="file"] {
 .switch-row p {
   margin: 0;
   color: var(--ua-muted);
-  font-size: 0.82rem;
-  line-height: 1.28;
+  font-size: 0.8rem;
+  line-height: 1.18;
+  max-width: 150px;
 }
 
 .switch-row .form-check {
@@ -1794,6 +1813,10 @@ input[type="file"] {
 }
 
 @media (max-width: 768px) {
+  .user-admin-page {
+    padding-bottom: 12px;
+  }
+
   .user-admin-page__header {
     flex-direction: column;
   }

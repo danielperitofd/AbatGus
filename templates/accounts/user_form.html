@@ -16,7 +16,7 @@
         <label class="upload-zone" for="{{ form.avatar.id_for_label }}" data-avatar-dropzone="true">
           <span class="avatar-preview" data-avatar-initials="true">
             {% if form.instance.avatar %}
-              <img src="{{ form.instance.avatar.url }}" alt="{{ form.instance.display_name|default:form.instance.username }}" data-avatar-preview="true">
+              <img src="{{ form.instance.avatar.url }}" alt="{{ form.instance.display_name|default:form.instance.username }}" class="avatar-preview__image" data-avatar-preview="true">
             {% else %}
               {{ form.instance.display_name|default:"NU"|slice:":2"|upper }}
             {% endif %}
@@ -140,7 +140,7 @@
         </div>
 
         <div class="row g-3">
-          <div class="col-md-5">
+          <div class="col-md-4">
             <label class="form-label">{{ form.organization.label }}</label>
             {{ form.organization }}
             {% if form.organization.errors %}<div class="text-danger small mt-1">{{ form.organization.errors|join:", " }}</div>{% endif %}
@@ -152,13 +152,13 @@
             {% if form.role.errors %}<div class="text-danger small mt-1">{{ form.role.errors|join:", " }}</div>{% endif %}
           </div>
 
-          <div class="col-md-3">
+          <div class="col-md-4 user-admin-status-col">
             <label class="form-label d-block">{% trans "Status" %}</label>
-            <div class="switch-card">
+            <div class="switch-card switch-card--compact">
               <div class="switch-row">
                 <div>
                   <h6>{% trans "Ativo" %}</h6>
-                  <p>{% trans "Permitir acesso imediato ao sistema após salvar." %}</p>
+                  <p>{% trans "Acesso imediato ao salvar." %}</p>
                 </div>
                 <div class="form-check form-switch m-0">
                   {{ form.is_active.as_widget }}

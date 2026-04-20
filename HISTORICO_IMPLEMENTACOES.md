@@ -435,3 +435,33 @@
   - `/contas/usuarios/novo/`
   - `/contas/usuarios/1/editar/`
   - `/contas/usuarios/3/editar/`
+
+## 2026-04-20 - refinamentos finais na tela de usuarios
+
+### Preview e upload de avatar
+- A foto ja salva no banco passou a ser exibida com o mesmo enquadramento da preview de upload, evitando o efeito de zoom excessivo.
+- O campo de avatar deixou de renderizar os textos padrao do Django no formulario:
+  - `Atualmente:`
+  - `Limpar`
+  - `Modificar:`
+- O preview visual ficou consistente entre:
+  - imagem ja cadastrada
+  - nova imagem selecionada
+  - avatar exibido no cabecalho
+
+### Fluxo de salvamento
+- O botao `Salvar usuario` passou a manter o usuario na propria tela apos salvar.
+- O fluxo de criacao agora redireciona para a tela de edicao do usuario recem-criado.
+- O fluxo de edicao agora retorna para a propria rota de edicao, em vez de levar para a listagem.
+- Quando o proprio usuario altera a propria senha, a sessao passa a ser preservada com `update_session_auth_hash`, evitando que o sistema derrube o login e redirecione para `/contas/login/`.
+
+### Ajustes finais de layout
+- Compactacao adicional do card `Ativo` na secao `Vinculo e permissoes`.
+- Ajuste de largura e copy do bloco de status para reduzir altura desnecessaria e melhorar o equilibrio visual da linha.
+
+### Validacao tecnica desta rodada
+- Validado com `manage.py check`.
+- Validado POST real em:
+  - `/contas/usuarios/3/editar/`
+- Confirmado redirecionamento de salvamento para:
+  - `/contas/usuarios/3/editar/`

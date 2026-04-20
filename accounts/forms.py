@@ -49,6 +49,9 @@ class UserForm(BootstrapFormMixin, forms.ModelForm):
             "is_active",
             "password",
         ]
+        widgets = {
+            "avatar": forms.FileInput(),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

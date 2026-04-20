@@ -1,3 +1,5 @@
+from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView, UpdateView
@@ -35,10 +37,12 @@ class UserCreateView(OrganizationManagerRequiredMixin, CreateView):
     model = User
     form_class = UserForm
     template_name = "accounts/user_form.html"
-    success_url = reverse_lazy("accounts:list")
 
     def get_effective_organization(self):
         return getattr(self.request, "current_organization", None) or getattr(self.request.user, "organization", None)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:update", kwargs={"pk": self.object.pk})
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -60,15 +64,22 @@ class UserCreateView(OrganizationManagerRequiredMixin, CreateView):
         context["form_variant"] = "user"
         return context
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, "Usuário salvo com sucesso.")
+        return response
+
 
 class UserUpdateView(OrganizationManagerRequiredMixin, UpdateView):
     model = User
     form_class = UserForm
     template_name = "accounts/user_form.html"
-    success_url = reverse_lazy("accounts:list")
 
     def get_effective_organization(self):
         return getattr(self.request, "current_organization", None) or getattr(self.request.user, "organization", None)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:update", kwargs={"pk": self.object.pk})
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -101,3 +112,11 @@ class UserUpdateView(OrganizationManagerRequiredMixin, UpdateView):
         context["page_description"] = "Ajuste permissões operacionais e dados de acesso."
         context["form_variant"] = "user"
         return context
+
+    def form_valid(self, form):
+        password_changed = bool(form.cleaned_data.get("password"))
+        response = super().form_valid(form)
+        if self.object.pk == self.request.user.pk and password_changed:
+            update_session_auth_hash(self.request, self.object)
+        messages.success(self.request, "Usuário atualizado com sucesso.")
+        return response
