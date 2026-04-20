@@ -375,3 +375,27 @@
 - Validado com `manage.py check`.
 - Validado o render do dashboard com links de `Perfil` e `Logout`.
 - Validado o ajuste visual do dropdown em telas desktop.
+
+## 2026-04-19 - avatar real e upload visual de foto
+
+### Exibicao de foto do usuario
+- O sistema passou a exibir a foto real do usuario no cabecalho desktop e mobile quando o campo `avatar` estiver preenchido.
+- Quando nao houver imagem enviada, o fallback continua sendo a inicial do nome no circulo de avatar.
+
+### Formulario de usuarios
+- O campo `foto` nas telas de:
+  - criacao de usuario
+  - edicao de usuario
+  foi transformado em uma area visual de upload com:
+  - bloco tracejado
+  - instrucoes de PNG ou JPG
+  - clique ou arraste
+  - preview da imagem atual ou da nova imagem selecionada
+- O input tambem passou a aceitar apenas formatos compativeis de imagem via atributo `accept`.
+
+### Validacao tecnica desta rodada
+- Validado com `manage.py check`.
+- Validadas as rotas:
+  - `/contas/usuarios/novo/`
+  - `/contas/usuarios/1/editar/`
+  - `/`

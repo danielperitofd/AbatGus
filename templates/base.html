@@ -37,7 +37,13 @@
       <div class="mobile-topbar__actions">
         <div class="dropdown">
           <button class="btn p-0 border-0 bg-transparent mobile-avatar-trigger" data-bs-toggle="dropdown" aria-expanded="false">
-            <div class="avatar-circle mobile-avatar-circle">{{ user.display_name|slice:":1"|upper }}</div>
+            <div class="avatar-circle mobile-avatar-circle">
+              {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" alt="{{ user.display_name }}" class="avatar-circle__image">
+              {% else %}
+                {{ user.display_name|slice:":1"|upper }}
+              {% endif %}
+            </div>
           </button>
           <div class="dropdown-menu dropdown-menu-end p-2 rounded-4 border-0 shadow user-menu-dropdown">
             <a class="dropdown-item rounded-3" href="{% url 'accounts:update' user.pk %}">

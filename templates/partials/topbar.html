@@ -37,7 +37,13 @@
     {% endif %}
     <div class="dropdown">
       <button class="user-chip user-chip-button btn p-0 border-0 bg-transparent" data-bs-toggle="dropdown" aria-expanded="false">
-        <div class="avatar-circle">{{ user.display_name|slice:":1"|upper }}</div>
+        <div class="avatar-circle">
+          {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" alt="{{ user.display_name }}" class="avatar-circle__image">
+          {% else %}
+            {{ user.display_name|slice:":1"|upper }}
+          {% endif %}
+        </div>
         <div class="text-start">
           <strong>{{ user.display_name }}</strong>
           <div class="small text-muted">{{ user.get_role_display }}</div>

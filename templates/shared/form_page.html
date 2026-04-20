@@ -23,6 +23,32 @@
               {{ field }}
             </div>
           </div>
+        {% elif field.field.widget.input_type == "file" and field.name == "avatar" %}
+          <div class="avatar-upload-card">
+            <label class="form-label">{{ field.label }}</label>
+            <label class="avatar-upload-dropzone" for="{{ field.id_for_label }}" data-avatar-dropzone="true">
+              <span class="avatar-upload-dropzone__preview">
+                {% if form.instance.avatar %}
+                  <img src="{{ form.instance.avatar.url }}" alt="{{ form.instance.display_name|default:form.instance.username }}" data-avatar-preview="true">
+                {% else %}
+                  <i class="bi bi-image" data-avatar-placeholder-icon="true"></i>
+                {% endif %}
+              </span>
+              <span class="avatar-upload-dropzone__title" data-avatar-title="true">
+                {% if form.instance.avatar %}{% trans "Foto atual carregada" %}{% else %}{% trans "Nenhuma logo carregada" %}{% endif %}
+              </span>
+              <span class="avatar-upload-dropzone__subtitle">{% trans "Envie um PNG ou JPG" %}</span>
+              <span class="avatar-upload-dropzone__action">
+                <span class="avatar-upload-dropzone__action-icon"><i class="bi bi-upload"></i></span>
+                <span>
+                  <strong>{% trans "Arraste o arquivo aqui" %}</strong>
+                  <small>{% trans "ou clique para escolher PNG ou JPG" %}</small>
+                </span>
+              </span>
+              {{ field }}
+            </label>
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          </div>
         {% else %}
           <label class="form-label">{{ field.label }}</label>
           {{ field }}
@@ -112,6 +138,51 @@
     if (field.value) {
       applyMask();
     }
+  });
+
+  document.querySelectorAll("[data-avatar-input='true']").forEach((field) => {
+    const dropzone = field.closest("[data-avatar-dropzone='true']");
+    if (!dropzone) return;
+
+    const previewContainer = dropzone.querySelector(".avatar-upload-dropzone__preview");
+    const title = dropzone.querySelector("[data-avatar-title='true']");
+
+    const renderPreview = (file) => {
+      if (!file || !file.type.startsWith("image/")) return;
+      const imageUrl = URL.createObjectURL(file);
+      previewContainer.innerHTML = `<img src="${imageUrl}" alt="${file.name}" data-avatar-preview="true">`;
+      if (title) {
+        title.textContent = "Imagem pronta para upload";
+      }
+    };
+
+    field.addEventListener("change", () => {
+      const file = field.files && field.files[0];
+      renderPreview(file);
+    });
+
+    ["dragenter", "dragover"].forEach((eventName) => {
+      dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropzone.classList.add("is-dragover");
+      });
+    });
+
+    ["dragleave", "drop"].forEach((eventName) => {
+      dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropzone.classList.remove("is-dragover");
+      });
+    });
+
+    dropzone.addEventListener("drop", (event) => {
+      const file = event.dataTransfer && event.dataTransfer.files ? event.dataTransfer.files[0] : null;
+      if (!file) return;
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      field.files = transfer.files;
+      renderPreview(file);
+    });
   });
 </script>
 {% endblock %}

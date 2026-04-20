@@ -53,6 +53,13 @@ class UserForm(BootstrapFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.apply_bootstrap()
+        self.fields["avatar"].help_text = "Envie um PNG ou JPG para usar no perfil."
+        self.fields["avatar"].widget.attrs.update(
+            {
+                "accept": ".png,.jpg,.jpeg,image/png,image/jpeg",
+                "data-avatar-input": "true",
+            }
+        )
 
     def save(self, commit=True):
         user = super().save(commit=False)
