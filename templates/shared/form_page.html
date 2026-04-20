@@ -9,55 +9,27 @@
       <p>{{ page_description }}</p>
     </div>
   </div>
-  <form method="post" enctype="multipart/form-data" class="row g-3">
+  <form method="post" enctype="multipart/form-data" class="row g-4 {% if form_variant == 'user' %}user-form-layout{% endif %}">
     {% csrf_token %}
-    {% for field in form %}
-      <div class="col-md-6">
-        {% if field.field.widget.input_type == "checkbox" %}
-          <div class="toggle-field">
-            <div>
-              <label class="form-label mb-1">{{ field.label }}</label>
-              <div class="form-text mt-0">{% if field.value %}{% trans "Ativo" %}{% else %}{% trans "Inativo" %}{% endif %}{% if field.help_text %} · {{ field.help_text }}{% endif %}</div>
-            </div>
-            <div class="form-check form-switch m-0">
-              {{ field }}
-            </div>
-          </div>
-        {% elif field.field.widget.input_type == "file" and field.name == "avatar" %}
-          <div class="avatar-upload-card">
-            <label class="form-label">{{ field.label }}</label>
-            <label class="avatar-upload-dropzone" for="{{ field.id_for_label }}" data-avatar-dropzone="true">
-              <span class="avatar-upload-dropzone__preview">
-                {% if form.instance.avatar %}
-                  <img src="{{ form.instance.avatar.url }}" alt="{{ form.instance.display_name|default:form.instance.username }}" data-avatar-preview="true">
-                {% else %}
-                  <i class="bi bi-image" data-avatar-placeholder-icon="true"></i>
-                {% endif %}
-              </span>
-              <span class="avatar-upload-dropzone__title" data-avatar-title="true">
-                {% if form.instance.avatar %}{% trans "Foto atual carregada" %}{% else %}{% trans "Nenhuma logo carregada" %}{% endif %}
-              </span>
-              <span class="avatar-upload-dropzone__subtitle">{% trans "Envie um PNG ou JPG" %}</span>
-              <span class="avatar-upload-dropzone__action">
-                <span class="avatar-upload-dropzone__action-icon"><i class="bi bi-upload"></i></span>
-                <span>
-                  <strong>{% trans "Arraste o arquivo aqui" %}</strong>
-                  <small>{% trans "ou clique para escolher PNG ou JPG" %}</small>
-                </span>
-              </span>
-              {{ field }}
-            </label>
-            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-          </div>
-        {% else %}
-          <label class="form-label">{{ field.label }}</label>
-          {{ field }}
-          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-        {% endif %}
-        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>{% endif %}
-      </div>
-    {% endfor %}
-    <div class="col-12 d-flex gap-2 justify-content-end">
+    {% if form_variant == 'user' %}
+      {% include "shared/_form_field.html" with field=form.first_name col_class="col-12 col-lg-6" field_wrapper_class="user-grid__first-name" %}
+      {% include "shared/_form_field.html" with field=form.last_name col_class="col-12 col-lg-6" field_wrapper_class="user-grid__last-name" %}
+      {% include "shared/_form_field.html" with field=form.username col_class="col-12 col-lg-6" field_wrapper_class="user-grid__username" %}
+      {% include "shared/_form_field.html" with field=form.email col_class="col-12 col-lg-6" field_wrapper_class="user-grid__email" %}
+      {% include "shared/_form_field.html" with field=form.organization col_class="col-12 col-lg-6" field_wrapper_class="user-grid__organization" %}
+      {% include "shared/_form_field.html" with field=form.job_title col_class="col-12 col-lg-6" field_wrapper_class="user-grid__job-title" %}
+      {% include "shared/_form_field.html" with field=form.avatar col_class="col-12 col-lg-6" field_wrapper_class="user-grid__avatar" field_shell_class="user-form__avatar" %}
+      {% include "shared/_form_field.html" with field=form.role col_class="col-12 col-lg-6" field_wrapper_class="user-grid__role" %}
+      {% include "shared/_form_field.html" with field=form.is_active col_class="col-12 col-lg-6" field_wrapper_class="user-grid__active" field_shell_class="user-form__toggle" %}
+      {% include "shared/_form_field.html" with field=form.phone col_class="col-12 col-lg-6" field_wrapper_class="user-grid__phone" %}
+      {% include "shared/_form_field.html" with field=form.internal_notes col_class="col-12 col-lg-6" field_wrapper_class="user-grid__notes" field_shell_class="user-form__notes" %}
+      {% include "shared/_form_field.html" with field=form.password col_class="col-12 col-lg-6" field_wrapper_class="user-grid__password" %}
+    {% else %}
+      {% for field in form %}
+        {% include "shared/_form_field.html" with field=field %}
+      {% endfor %}
+    {% endif %}
+    <div class="col-12 d-flex gap-2 justify-content-end user-form__actions">
       <a href="javascript:history.back()" class="btn btn-outline-secondary rounded-4 px-4">{% trans "Cancelar" %}</a>
       <button class="btn btn-primary rounded-4 px-4" type="submit">{% trans "Salvar" %}</button>
     </div>

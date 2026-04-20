@@ -53,6 +53,19 @@ class UserForm(BootstrapFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.apply_bootstrap()
+        placeholders = {
+            "first_name": "Primeiro nome",
+            "last_name": "Último nome",
+            "username": "Usuário",
+            "email": "Endereço de email",
+            "job_title": "Cargo",
+            "phone": "Telefone",
+            "internal_notes": "Observações internas",
+            "password": "Senha",
+        }
+        for field_name, placeholder in placeholders.items():
+            if field_name in self.fields:
+                self.fields[field_name].widget.attrs.setdefault("placeholder", placeholder)
         self.fields["avatar"].help_text = "Envie um PNG ou JPG para usar no perfil."
         self.fields["avatar"].widget.attrs.update(
             {

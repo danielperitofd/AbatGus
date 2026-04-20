@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }} | AbatGus{% endblock %}
+{% block content %}
+<section class="user-admin-page">
+  <form id="user-form" method="post" enctype="multipart/form-data" class="user-admin-shell">
+    {% csrf_token %}
+
+    <aside class="user-admin-sidebar panel">
+      <div class="user-admin-sidebar__head">
+        <h2 class="user-admin-sidebar__title">{% trans "Perfil do usuário" %}</h2>
+        <p class="user-admin-sidebar__text">{% trans "Concentre aqui tudo que é mais visual e operacional: foto, status e resumo rápido." %}</p>
+      </div>
+
+      <div class="user-admin-sidebar__section">
+        <label class="upload-zone" for="{{ form.avatar.id_for_label }}" data-avatar-dropzone="true">
+          <span class="avatar-preview" data-avatar-initials="true">
+            {% if form.instance.avatar %}
+              <img src="{{ form.instance.avatar.url }}" alt="{{ form.instance.display_name|default:form.instance.username }}" data-avatar-preview="true">
+            {% else %}
+              {{ form.instance.display_name|default:"NU"|slice:":2"|upper }}
+            {% endif %}
+          </span>
+          <strong class="upload-title" data-avatar-title="true">
+            {% if form.instance.avatar %}{% trans "Foto atual carregada" %}{% else %}{% trans "Foto do perfil" %}{% endif %}
+          </strong>
+          <span class="upload-meta">{% trans "Arraste uma imagem PNG ou JPG. A prévia aparece aqui assim que você escolher o arquivo." %}</span>
+          <span class="upload-actions">
+            <span class="btn btn-primary-custom btn-sm">{% trans "Escolher arquivo" %}</span>
+          </span>
+          <span class="mini-hint">{% trans "Tamanho recomendado: 600x600 px" %}</span>
+          {{ form.avatar }}
+        </label>
+        {% if form.avatar.help_text %}<div class="field-note">{{ form.avatar.help_text }}</div>{% endif %}
+        {% if form.avatar.errors %}<div class="text-danger small mt-1">{{ form.avatar.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="user-admin-sidebar__section">
+        <div class="status-card">
+          <div class="status-head">
+            <div>
+              <p class="status-title">{{ form.is_active.label }}</p>
+              <p class="status-text">{% if form.is_active.help_text %}{{ form.is_active.help_text }}{% else %}{% trans "Permite acesso ao sistema e participação nas rotinas da organização." %}{% endif %}</p>
+            </div>
+            <div class="form-check form-switch m-0">
+              {{ form.is_active }}
+            </div>
+          </div>
+          {% if form.is_active.errors %}<div class="text-danger small mt-1">{{ form.is_active.errors|join:", " }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="quick-list">
+        <div class="quick-item">
+          <div>
+            <strong>{% trans "Perfil padrão" %}</strong>
+            <span>{% trans "Tipo de acesso definido para este usuário." %}</span>
+          </div>
+          <div class="badge-soft" data-role-badge="true">{{ form.role.value|default:form.role.field.choices.0.1 }}</div>
+        </div>
+
+        <div class="quick-item">
+          <div>
+            <strong>{% trans "Organização" %}</strong>
+            <span>{% trans "A organização controla contexto e permissões operacionais." %}</span>
+          </div>
+          <div class="badge-soft" data-organization-badge="true">{% trans "Obrigatório" %}</div>
+        </div>
+
+        <div class="quick-item">
+          <div>
+            <strong>{% trans "Status de acesso" %}</strong>
+            <span>{% trans "Ativo libera acesso imediato ao sistema." %}</span>
+          </div>
+          <div class="badge-soft" data-active-badge="true">{% if form.is_active.value %}{% trans "Ativo" %}{% else %}{% trans "Inativo" %}{% endif %}</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="user-admin-main panel">
+      <section class="section-card">
+        <div class="section-head">
+          <div>
+            <h3 class="section-title">{% trans "Identificação e contato" %}</h3>
+            <p class="section-subtitle">{% trans "Os campos principais ficam juntos para leitura rápida e preenchimento natural." %}</p>
+          </div>
+          <div class="helper-chip">{% trans "Dados básicos" %}</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">{{ form.first_name.label }}</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">{{ form.last_name.label }}</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.username.label }}</label>
+            {{ form.username }}
+            <div class="username-preview">
+              <span>{% trans "Identificador usado no login" %}</span>
+              <strong data-username-preview="true">@{{ form.username.value|default:"usuario" }}</strong>
+            </div>
+            {% if form.username.help_text %}<div class="field-note">{{ form.username.help_text }}</div>{% endif %}
+            {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.email.label }}</label>
+            {{ form.email }}
+            {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.phone.label }}</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.job_title.label }}</label>
+            {{ form.job_title }}
+            {% if form.job_title.errors %}<div class="text-danger small mt-1">{{ form.job_title.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <div class="section-head">
+          <div>
+            <h3 class="section-title">{% trans "Vínculo e permissões" %}</h3>
+            <p class="section-subtitle">{% trans "Organização, perfil e status ficam no mesmo bloco para fazer sentido de uma vez só." %}</p>
+          </div>
+          <div class="helper-chip">{% trans "Acesso" %}</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-5">
+            <label class="form-label">{{ form.organization.label }}</label>
+            {{ form.organization }}
+            {% if form.organization.errors %}<div class="text-danger small mt-1">{{ form.organization.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">{{ form.role.label }}</label>
+            {{ form.role }}
+            {% if form.role.errors %}<div class="text-danger small mt-1">{{ form.role.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label d-block">{% trans "Status" %}</label>
+            <div class="switch-card">
+              <div class="switch-row">
+                <div>
+                  <h6>{% trans "Ativo" %}</h6>
+                  <p>{% trans "Permitir acesso imediato ao sistema após salvar." %}</p>
+                </div>
+                <div class="form-check form-switch m-0">
+                  {{ form.is_active.as_widget }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <div class="section-head">
+          <div>
+            <h3 class="section-title">{% trans "Segurança" %}</h3>
+            <p class="section-subtitle">{% trans "Senha com apoio visual e ações úteis em vez de um campo solitário jogado no canto." %}</p>
+          </div>
+          <div class="helper-chip">{% trans "Proteção de acesso" %}</div>
+        </div>
+
+        <div class="security-row">
+          <div class="password-box">
+            <label class="form-label">{{ form.password.label }}</label>
+            {{ form.password }}
+            <div class="strength">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            {% if form.password.help_text %}<div class="field-note">{{ form.password.help_text }}</div>{% endif %}
+            {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div>
+            <label class="form-label d-block">&nbsp;</label>
+            <button class="btn btn-soft-secondary w-100" type="button" data-toggle-password="true">{% trans "Mostrar" %}</button>
+          </div>
+          <div>
+            <label class="form-label d-block">&nbsp;</label>
+            <button class="btn btn-primary-custom w-100" type="button" data-generate-password="true">{% trans "Gerar senha" %}</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-card mb-0">
+        <div class="section-head">
+          <div>
+            <h3 class="section-title">{% trans "Observações internas" %}</h3>
+            <p class="section-subtitle">{% trans "Campo amplo e isolado para não concorrer com o resto do formulário." %}</p>
+          </div>
+          <div class="helper-chip">{% trans "Opcional" %}</div>
+        </div>
+
+        <label class="form-label">{{ form.internal_notes.label }}</label>
+        {{ form.internal_notes }}
+        {% if form.internal_notes.errors %}<div class="text-danger small mt-1">{{ form.internal_notes.errors|join:", " }}</div>{% endif %}
+      </section>
+
+      <div class="footer-actions">
+        <div class="left-note">
+          {% trans "Revise os dados antes de salvar. O rodapé fixo mantém a ação principal sempre visível." %}
+        </div>
+        <div class="actions d-flex gap-2">
+          <a href="javascript:history.back()" class="btn btn-soft-secondary">{% trans "Cancelar" %}</a>
+          <button class="btn btn-primary-custom" type="submit">{% trans "Salvar usuário" %}</button>
+        </div>
+      </div>
+    </main>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+  const avatarInput = document.querySelector("[data-avatar-input='true']");
+  const avatarDropzone = document.querySelector("[data-avatar-dropzone='true']");
+  const avatarPreview = document.querySelector("[data-avatar-initials='true']");
+  const avatarTitle = document.querySelector("[data-avatar-title='true']");
+  const usernameField = document.getElementById("id_username");
+  const usernamePreview = document.querySelector("[data-username-preview='true']");
+  const roleField = document.getElementById("id_role");
+  const roleBadge = document.querySelector("[data-role-badge='true']");
+  const organizationField = document.getElementById("id_organization");
+  const organizationBadge = document.querySelector("[data-organization-badge='true']");
+  const activeField = document.getElementById("id_is_active");
+  const activeBadge = document.querySelector("[data-active-badge='true']");
+  const passwordField = document.getElementById("id_password");
+  const togglePasswordButton = document.querySelector("[data-toggle-password='true']");
+  const generatePasswordButton = document.querySelector("[data-generate-password='true']");
+
+  const updateUsernamePreview = () => {
+    if (usernameField && usernamePreview) {
+      usernamePreview.textContent = `@${usernameField.value || "usuario"}`;
+    }
+  };
+
+  const updateRoleBadge = () => {
+    if (roleField && roleBadge) {
+      roleBadge.textContent = roleField.options[roleField.selectedIndex]?.text || "Perfil";
+    }
+  };
+
+  const updateOrganizationBadge = () => {
+    if (organizationField && organizationBadge) {
+      organizationBadge.textContent = organizationField.options[organizationField.selectedIndex]?.text || "Obrigatório";
+    }
+  };
+
+  const updateActiveBadge = () => {
+    if (activeField && activeBadge) {
+      activeBadge.textContent = activeField.checked ? "Ativo" : "Inativo";
+    }
+  };
+
+  const renderAvatarPreview = (file) => {
+    if (!avatarPreview || !file || !file.type.startsWith("image/")) return;
+    const imageUrl = URL.createObjectURL(file);
+    avatarPreview.innerHTML = `<img src="${imageUrl}" alt="${file.name}" class="avatar-preview__image">`;
+    if (avatarTitle) {
+      avatarTitle.textContent = "Foto pronta para upload";
+    }
+  };
+
+  if (avatarInput && avatarDropzone) {
+    avatarInput.addEventListener("change", () => {
+      const file = avatarInput.files && avatarInput.files[0];
+      renderAvatarPreview(file);
+    });
+
+    ["dragenter", "dragover"].forEach((eventName) => {
+      avatarDropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        avatarDropzone.classList.add("is-dragover");
+      });
+    });
+
+    ["dragleave", "drop"].forEach((eventName) => {
+      avatarDropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        avatarDropzone.classList.remove("is-dragover");
+      });
+    });
+
+    avatarDropzone.addEventListener("drop", (event) => {
+      const file = event.dataTransfer && event.dataTransfer.files ? event.dataTransfer.files[0] : null;
+      if (!file) return;
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      avatarInput.files = transfer.files;
+      renderAvatarPreview(file);
+    });
+  }
+
+  if (usernameField) {
+    usernameField.addEventListener("input", updateUsernamePreview);
+    updateUsernamePreview();
+  }
+
+  if (roleField) {
+    roleField.addEventListener("change", updateRoleBadge);
+    updateRoleBadge();
+  }
+
+  if (organizationField) {
+    organizationField.addEventListener("change", updateOrganizationBadge);
+    updateOrganizationBadge();
+  }
+
+  if (activeField) {
+    activeField.addEventListener("change", updateActiveBadge);
+    updateActiveBadge();
+  }
+
+  if (togglePasswordButton && passwordField) {
+    togglePasswordButton.addEventListener("click", () => {
+      const isPassword = passwordField.type === "password";
+      passwordField.type = isPassword ? "text" : "password";
+      togglePasswordButton.textContent = isPassword ? "Ocultar" : "Mostrar";
+    });
+  }
+
+  if (generatePasswordButton && passwordField) {
+    generatePasswordButton.addEventListener("click", () => {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+      let generated = "";
+      for (let i = 0; i < 14; i += 1) {
+        generated += chars[Math.floor(Math.random() * chars.length)];
+      }
+      passwordField.value = generated;
+      passwordField.type = "text";
+      if (togglePasswordButton) {
+        togglePasswordButton.textContent = "Ocultar";
+      }
+    });
+  }
+</script>
+{% endblock %}

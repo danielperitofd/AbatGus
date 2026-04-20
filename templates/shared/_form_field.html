@@ -1,0 +1,47 @@
+{% load i18n %}
+<div class="{{ col_class|default:'col-md-6' }} {% if field_wrapper_class %}{{ field_wrapper_class }}{% endif %}">
+  {% if field.field.widget.input_type == "checkbox" %}
+    <div class="toggle-field {% if field_shell_class %}{{ field_shell_class }}{% endif %}">
+      <div>
+        <label class="form-label mb-1">{{ field.label }}</label>
+        <div class="form-text mt-0">{% if field.value %}{% trans "Ativo" %}{% else %}{% trans "Inativo" %}{% endif %}{% if field.help_text %} · {{ field.help_text }}{% endif %}</div>
+      </div>
+      <div class="form-check form-switch m-0">
+        {{ field }}
+      </div>
+    </div>
+  {% elif field.field.widget.input_type == "file" and field.name == "avatar" %}
+    <div class="avatar-upload-card {% if field_shell_class %}{{ field_shell_class }}{% endif %}">
+      <label class="form-label">{{ field.label }}</label>
+      <label class="avatar-upload-dropzone" for="{{ field.id_for_label }}" data-avatar-dropzone="true">
+        <span class="avatar-upload-dropzone__preview">
+          {% if field.form.instance.avatar %}
+            <img src="{{ field.form.instance.avatar.url }}" alt="{{ field.form.instance.display_name|default:field.form.instance.username }}" data-avatar-preview="true">
+          {% else %}
+            <i class="bi bi-image" data-avatar-placeholder-icon="true"></i>
+          {% endif %}
+        </span>
+        <span class="avatar-upload-dropzone__title" data-avatar-title="true">
+          {% if field.form.instance.avatar %}{% trans "Foto atual carregada" %}{% else %}{% trans "Nenhuma foto carregada" %}{% endif %}
+        </span>
+        <span class="avatar-upload-dropzone__subtitle">{% trans "Envie um PNG ou JPG" %}</span>
+        <span class="avatar-upload-dropzone__action">
+          <span class="avatar-upload-dropzone__action-icon"><i class="bi bi-upload"></i></span>
+          <span>
+            <strong>{% trans "Arraste o arquivo aqui" %}</strong>
+            <small>{% trans "ou clique para escolher PNG ou JPG" %}</small>
+          </span>
+        </span>
+        {{ field }}
+      </label>
+      {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+    </div>
+  {% else %}
+    <div class="user-form-field-shell {% if field_shell_class %}{{ field_shell_class }}{% endif %}">
+      <label class="form-label">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+    </div>
+  {% endif %}
+  {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>{% endif %}
+</div>

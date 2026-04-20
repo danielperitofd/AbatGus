@@ -399,3 +399,39 @@
   - `/contas/usuarios/novo/`
   - `/contas/usuarios/1/editar/`
   - `/`
+
+## 2026-04-19 - redesign da tela de usuarios
+
+### Estrutura dedicada para cadastro e edicao
+- A tela de `Novo usuario` e `Editar usuario` deixou de depender do layout generico de formulario.
+- Foi criada uma pagina dedicada com:
+  - painel lateral para foto, status e atalhos de contexto
+  - painel principal com secoes separadas
+  - bloco de seguranca com acoes de senha
+  - rodape fixo com acoes principais
+
+### Melhorias de experiencia
+- Reordenacao dos campos para leitura mais natural:
+  - identificacao e contato
+  - vinculo e permissoes
+  - seguranca
+  - observacoes internas
+- Inclusao de preview de username no bloco de identificacao.
+- Inclusao de geracao rapida de senha e alternancia mostrar/ocultar.
+- Ajuste da foto de perfil para um bloco mais valorizado e integrado ao contexto do usuario.
+
+### Limpeza de redundancias
+- Remocao do titulo duplicado dentro do conteudo da pagina, mantendo a identificacao principal no cabecalho global.
+- Remocao de redundancias visuais no topo da pagina dedicada.
+
+### Ajustes finos de layout
+- Reaproveitamento melhor dos espacos do card principal.
+- Ajuste do bloco `Status/Ativo` para altura natural, sem esticar nem vazar no container.
+- Refinos de espacamento, alinhamento e proporcao dos blocos laterais e centrais.
+
+### Validacao tecnica desta rodada
+- Validado com `manage.py check`.
+- Validadas as rotas:
+  - `/contas/usuarios/novo/`
+  - `/contas/usuarios/1/editar/`
+  - `/contas/usuarios/3/editar/`
